@@ -560,7 +560,7 @@ public class DynamicCamera : MonoBehaviour
 
         public override void Update()
         {
-            if (MovingEnabled && !main.ActiveRobot.IsResetting && !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
+            if (MovingEnabled && (main == null || !main.ActiveRobot.IsResetting) && !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
             {
                 //Rotate camera when holding left mouse
                 if (InputControl.GetMouseButton(0))

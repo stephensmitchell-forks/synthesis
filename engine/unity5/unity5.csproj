@@ -288,6 +288,8 @@
     <Compile Include="Assets\Scripts\MixAndMatch\MixAndMatchScroll.cs" />
     <Compile Include="Assets\Scripts\MixAndMatch\RobotTypeManager.cs" />
     <Compile Include="Assets\Scripts\MixAndMatch\XMLManager.cs" />
+    <Compile Include="Assets\Scripts\MultiplayerPlayer.cs" />
+    <Compile Include="Assets\Scripts\MultiplayerState.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNCommon.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNJoint.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNMesh.cs" />
@@ -295,7 +297,8 @@
     <Compile Include="Assets\Scripts\Robot Camera\RobotCamera.cs" />
     <Compile Include="Assets\Scripts\Robot Camera\RobotCameraGUI.cs" />
     <Compile Include="Assets\Scripts\Robot Camera\RobotCameraManager.cs" />
-    <Compile Include="Assets\Scripts\Robot.cs" />
+    <Compile Include="Assets\Scripts\Robot\Robot.cs" />
+    <Compile Include="Assets\Scripts\Robot\RobotBase.cs" />
     <Compile Include="Assets\Scripts\Sensors\BeamBreaker.cs" />
     <Compile Include="Assets\Scripts\Sensors\Gyro.cs" />
     <Compile Include="Assets\Scripts\Sensors\SensorBase.cs" />
