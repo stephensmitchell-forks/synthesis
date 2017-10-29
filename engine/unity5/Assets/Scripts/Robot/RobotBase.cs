@@ -245,7 +245,7 @@ public class RobotBase : NetworkBehaviour
     protected void UpdateRobotInfo()
     {
         if (rootNode != null && ControlsEnabled)
-            DriveJoints.UpdateAllMotors(rootNode, Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum);
+            DriveJoints.UpdateAllMotors(rootNode, DriveJoints.GetPwmValues(Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum));
 
         UpdateStats();
     }

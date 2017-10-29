@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using Assets.Scripts.FSM;
+using System.Linq;
 
 public class DynamicCamera : MonoBehaviour
 {
@@ -493,7 +494,19 @@ public class DynamicCamera : MonoBehaviour
             }
             else
             {
-                robot = GameObject.Find("Robot");
+                Type stateType = StateMachine.Instance.CurrentState.GetType();
+
+                if (stateType.Equals(typeof(MainState)))
+                {
+                    robot = GameObject.Find("Robot");
+                }
+                else if (stateType.Equals(typeof(MultiplayerState)))
+                {
+                    NetworkRobot[] netRobots = FindObjectsOfType<NetworkRobot>();
+
+                    if (netRobots.Length > 0)
+                        robot = netRobots.First(x => x.isLocalPlayer).gameObject;
+                }
             }
         }
 

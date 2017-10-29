@@ -173,10 +173,10 @@ public class DriveJoints
             }
         }
     }
-    public static void UpdateAllMotors(RigidNode_Base skeleton, UnityPacket.OutputStatePacket.DIOModule[] dioModules, int controlIndex, bool mecanum)
+
+    public static float[] GetPwmValues(UnityPacket.OutputStatePacket.DIOModule[] dioModules, int controlIndex, bool mecanum)
     {
         bool IsMecanum = mecanum;
-        int reverse = -1;
 
         float[] pwm;
         float[] can;
@@ -193,12 +193,12 @@ public class DriveJoints
         }
 
         if (IsMecanum)
-        {   
+        {
             #region Mecanum Drive
             pwm[(int)MecanumPorts.FRONT_RIGHT] +=
                 (InputControl.GetAxis(Controls.axes[controlIndex].vertical) * -SPEED_ARROW_PWM) +
-                (InputControl.GetAxis(Controls.axes[controlIndex].horizontal) * - SPEED_ARROW_PWM) +
-                (InputControl.GetAxis(Controls.axes[controlIndex].pwm2Axes) *  -SPEED_ARROW_PWM);
+                (InputControl.GetAxis(Controls.axes[controlIndex].horizontal) * -SPEED_ARROW_PWM) +
+                (InputControl.GetAxis(Controls.axes[controlIndex].pwm2Axes) * -SPEED_ARROW_PWM);
 
             pwm[(int)MecanumPorts.FRONT_LEFT] +=
                 (InputControl.GetAxis(Controls.axes[controlIndex].vertical) * SPEED_ARROW_PWM) +
@@ -300,6 +300,11 @@ public class DriveJoints
             #endregion
         }
 
+        return pwm;
+    }
+
+    public static void UpdateAllMotors(RigidNode_Base skeleton, float[] pwm)
+    {
         listOfSubNodes.Clear();
         skeleton.ListAllNodes(listOfSubNodes);
 

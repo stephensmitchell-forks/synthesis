@@ -14,6 +14,7 @@ using Assets.Scripts.BUExtensions;
 using Assets.Scripts;
 using UnityEngine.UI;
 using Assets.Scripts.Utils;
+using Assets.Scripts.Network;
 
 /// <summary>
 /// This is the main class of the simulator; it handles all the initialization of robot and field objects within the simulator.
@@ -22,8 +23,6 @@ using Assets.Scripts.Utils;
 /// </summary>
 public class MultiplayerState : SimState
 {
-    // TODO: Create a BaseRobot class and derive everything from that.
-
     private const int SolverIterations = 100;
 
     private BPhysicsWorld physicsWorld;
@@ -44,6 +43,17 @@ public class MultiplayerState : SimState
 
     public List<RobotBase> SpawnedRobots { get; private set; }
     private const int MAX_ROBOTS = 6;
+
+    private MultiplayerNetwork network;
+
+    enum NetworkMode
+    {
+        Disconnected,
+        Client,
+        Host
+    }
+
+    private NetworkMode clientNetworkMode;
 
     public bool IsMetric;
 
@@ -91,19 +101,14 @@ public class MultiplayerState : SimState
             return;
         }
 
-        Debug.Log("Robot Type Manager isMixAndMatch:" + RobotTypeManager.IsMixAndMatch);
-        if (!LoadRobot(PlayerPrefs.GetString("simSelectedRobot"), RobotTypeManager.IsMixAndMatch))
-        {
-            AppModel.ErrorToMenu("Could not load robot: " + PlayerPrefs.GetString("simSelectedRobot") + "\nHas it been moved or deleted?)");
-            return;
-        }
-
         //initializes the dynamic camera
         DynamicCameraObject = GameObject.Find("Main Camera");
         dynamicCamera = DynamicCameraObject.AddComponent<DynamicCamera>();
         DynamicCamera.MovingEnabled = true;
 
         IsMetric = PlayerPrefs.GetString("Measure").Equals("Metric") ? true : false;
+
+        network = GameObject.Find("Network Manager").GetComponent<MultiplayerNetwork>();
     }
 
     /// <summary>
@@ -111,9 +116,23 @@ public class MultiplayerState : SimState
     /// </summary>
     public override void Update()
     {
+        if (clientNetworkMode == NetworkMode.Disconnected)
+        {
+            if (Input.GetKey(KeyCode.G))
+            {
+                clientNetworkMode = NetworkMode.Client;
+                network.StartClient();
+            }
+            else if (Input.GetKey(KeyCode.H))
+            {
+                clientNetworkMode = NetworkMode.Host;
+                network.StartHost();
+            }
+        }
+
         if (ActiveRobot == null)
         {
-            AppModel.ErrorToMenu("Robot instance not valid.");
+            //AppModel.ErrorToMenu("Robot instance not valid.");
             return;
         }
 
@@ -136,7 +155,7 @@ public class MultiplayerState : SimState
         //robotCameraObject.transform.position = activeRobot.transform.GetChild(0).transform.position;
         if (ActiveRobot == null)
         {
-            AppModel.ErrorToMenu("Robot instance not valid.");
+            //AppModel.ErrorToMenu("Robot instance not valid.");
             return;
         }
 
@@ -174,32 +193,20 @@ public class MultiplayerState : SimState
     /// </summary>
     /// <param name="directory">robot directory</param>
     /// <returns>whether the process was successful</returns>
-    public bool LoadRobot(string directory, bool isMixAndMatch)
+    public bool LoadRobot(NetworkRobot playerRobot, string directory, bool isLocal)
     {
         if (SpawnedRobots.Count < MAX_ROBOTS)
         {
-            if (isMixAndMatch)
-            {
-                robotPath = RobotTypeManager.RobotPath;
-            }
-            else
-            {
-                robotPath = directory;
-            }
-
-            GameObject robotObject = new GameObject("Robot");
-            RobotBase robot = robotObject.AddComponent<RobotBase>();
-
-            //Initialiezs the physical robot based off of robot directory. Returns false if not sucessful
-            if (!robot.InitializeRobot(robotPath)) return false;
+            //Initializes the physical robot based off of robot directory. Returns false if not sucessful
+            if (!playerRobot.InitializeRobot(directory)) return false;
 
             //If this is the first robot spawned, then set it to be the active robot and initialize the robot camera on it
-            if (ActiveRobot == null)
-            {
-                ActiveRobot = robot;
-            }
+            if (isLocal)
+                ActiveRobot = playerRobot;
+            else
+                playerRobot.ControlIndex = 5;
 
-            SpawnedRobots.Add(robot);
+            SpawnedRobots.Add(playerRobot);
 
             return true;
         }

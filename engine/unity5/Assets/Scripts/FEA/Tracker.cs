@@ -105,8 +105,11 @@ namespace Assets.Scripts.FEA
             mainState = StateMachine.Instance.FindState<MainState>();
 
             if (mainState == null)
+            {
                 Destroy(this);
-
+                return;
+            }
+            
             physicsWorld = BPhysicsWorld.Get();
             rigidBody = (RigidBody)GetComponent<BRigidBody>().GetCollisionObject();
 
