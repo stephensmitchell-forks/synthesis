@@ -10,13 +10,16 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 /*
- * TODO: Continue work on lag compensation and after that, robot mesh data transfer.
+ * TODO: Improve jitteriness
  */
 
 [NetworkSettings(channel = 0, sendInterval = 0.025f)]
 public class NetworkRobot : RobotBase
 {
     BRigidBody[] rigidBodies;
+    bool correctionEnabled = true;
+
+    MultiplayerState state;
 
     private void Start()
     {
@@ -24,17 +27,24 @@ public class NetworkRobot : RobotBase
 
         if (!string.IsNullOrEmpty(directory))
         {
-            MultiplayerState state = StateMachine.Instance.FindState<MultiplayerState>();
+            state = StateMachine.Instance.FindState<MultiplayerState>();
             state.LoadRobot(this, directory, isLocalPlayer);
             rigidBodies = GetComponentsInChildren<BRigidBody>();
+
+            if (!isServer)
+                foreach (BRigidBody rb in rigidBodies)
+                    rb.gameObject.AddComponent<NetworkMesh>();
+
             UpdateRobotInfo();
         }
     }
 
     private void Update()
     {
-        foreach (BHingedConstraintEx hc in GetComponentsInChildren<BHingedConstraint>())
-            Debug.Log(((HingeConstraint)hc.GetConstraint()).MotorTargetVelocity);
+        if (Input.GetKey(KeyCode.E))
+            correctionEnabled = true;
+        else if (Input.GetKey(KeyCode.D))
+            correctionEnabled = false;
 
         BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
 
@@ -98,7 +108,7 @@ public class NetworkRobot : RobotBase
     [ClientRpc]
     void RpcUpdateTransforms(float[] transforms)
     {
-        if (isServer)
+        if (isServer || !correctionEnabled)
             return;
 
         int i = 0;
@@ -121,9 +131,21 @@ public class NetworkRobot : RobotBase
             for (int j = 0; j < rawAngularVelocity.Length; j++)
                 rawAngularVelocity[j] = transforms[i * 13 + rawTransform.Length + rawLinearVelocity.Length + j];
 
+            BulletSharp.Math.Vector3 linearVelocity = new BulletSharp.Math.Vector3(rawLinearVelocity);
+            BulletSharp.Math.Vector3 angularVelocity = new BulletSharp.Math.Vector3(rawAngularVelocity);
+
+            int rtt = state.Network.client.GetRTT();
+
+            // Debug.Log((currentTransform.Origin - rb.GetCollisionObject().WorldTransform.Origin).Length);
+
+            currentTransform.Origin += linearVelocity * rtt * 0.001f;
+            currentTransform.Orientation.Rotate(angularVelocity * rtt * 0.001f);
+
             rb.GetCollisionObject().WorldTransform = currentTransform;
-            rb.GetCollisionObject().InterpolationLinearVelocity = new BulletSharp.Math.Vector3(rawLinearVelocity);
-            rb.GetCollisionObject().InterpolationAngularVelocity = new BulletSharp.Math.Vector3(rawAngularVelocity);
+            rb.GetCollisionObject().InterpolationLinearVelocity = linearVelocity;
+            rb.GetCollisionObject().InterpolationAngularVelocity = angularVelocity;
+
+            rb.GetComponent<NetworkMesh>().UpdateMeshTransform(currentTransform.Origin.ToUnity(), currentTransform.Orientation.ToUnity());
 
             i++;
         }

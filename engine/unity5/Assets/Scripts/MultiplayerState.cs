@@ -44,7 +44,7 @@ public class MultiplayerState : SimState
     public List<RobotBase> SpawnedRobots { get; private set; }
     private const int MAX_ROBOTS = 6;
 
-    private MultiplayerNetwork network;
+    public MultiplayerNetwork Network { get; private set; }
 
     enum NetworkMode
     {
@@ -108,7 +108,7 @@ public class MultiplayerState : SimState
 
         IsMetric = PlayerPrefs.GetString("Measure").Equals("Metric") ? true : false;
 
-        network = GameObject.Find("Network Manager").GetComponent<MultiplayerNetwork>();
+        Network = GameObject.Find("Network Manager").GetComponent<MultiplayerNetwork>();
     }
 
     /// <summary>
@@ -121,12 +121,12 @@ public class MultiplayerState : SimState
             if (Input.GetKey(KeyCode.G))
             {
                 clientNetworkMode = NetworkMode.Client;
-                network.StartClient();
+                Network.StartClient();
             }
             else if (Input.GetKey(KeyCode.H))
             {
                 clientNetworkMode = NetworkMode.Host;
-                network.StartHost();
+                Network.StartHost();
             }
         }
 

@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.6.3p2</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -295,6 +297,7 @@
     <Compile Include="Assets\Scripts\Robot Camera\RobotCamera.cs" />
     <Compile Include="Assets\Scripts\Robot Camera\RobotCameraGUI.cs" />
     <Compile Include="Assets\Scripts\Robot Camera\RobotCameraManager.cs" />
+    <Compile Include="Assets\Scripts\Robot\NetworkMesh.cs" />
     <Compile Include="Assets\Scripts\Robot\NetworkRobot.cs" />
     <Compile Include="Assets\Scripts\Robot\Robot.cs" />
     <Compile Include="Assets\Scripts\Robot\RobotBase.cs" />
