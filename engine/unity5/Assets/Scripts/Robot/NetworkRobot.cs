@@ -9,15 +9,13 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-/*
- * TODO: Improve jitteriness
- */
-
 [NetworkSettings(channel = 0, sendInterval = 0.025f)]
 public class NetworkRobot : RobotBase
 {
     BRigidBody[] rigidBodies;
     bool correctionEnabled = true;
+    bool canSendUpdate = true;
+    bool updateTransform = false;
 
     MultiplayerState state;
 
@@ -52,8 +50,28 @@ public class NetworkRobot : RobotBase
             return;
 
         UpdateRobotPhysics();
-        
-        if (isServer)
+
+        canSendUpdate = true;
+    }
+
+    private void FixedUpdate()
+    {
+        BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
+
+        if (rigidBody == null)
+            return;
+
+        if (isLocalPlayer)
+        {
+            float[] pwm = DriveJoints.GetPwmValues(Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum);
+
+            if (!isServer)
+                UpdateRobotInfo(pwm);
+
+            CmdUpdateRobotInfo(pwm);
+        }
+
+        if (isServer && canSendUpdate)
         {
             float[] transforms = new float[rigidBodies.Length * 13];
 
@@ -80,20 +98,8 @@ public class NetworkRobot : RobotBase
 
             RpcUpdateTransforms(transforms);
         }
-    }
 
-    private void FixedUpdate()
-    {
-        BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
-
-        if (rigidBody == null)
-            return;
-
-        if (isLocalPlayer)
-            CmdUpdateRobotInfo(DriveJoints.GetPwmValues(Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum));            
-
-        if (!isServer)
-            UpdateRobotInfo();
+        canSendUpdate = false;
     }
 
     [Command]
@@ -111,6 +117,7 @@ public class NetworkRobot : RobotBase
         if (isServer || !correctionEnabled)
             return;
 
+        bool updateTransformNextFrame = false;
         int i = 0;
         foreach (BRigidBody rb in rigidBodies)
         {
@@ -136,19 +143,25 @@ public class NetworkRobot : RobotBase
 
             int rtt = state.Network.client.GetRTT();
 
-            // Debug.Log((currentTransform.Origin - rb.GetCollisionObject().WorldTransform.Origin).Length);
-
             currentTransform.Origin += linearVelocity * rtt * 0.001f;
             currentTransform.Orientation.Rotate(angularVelocity * rtt * 0.001f);
 
-            rb.GetCollisionObject().WorldTransform = currentTransform;
-            rb.GetCollisionObject().InterpolationLinearVelocity = linearVelocity;
-            rb.GetCollisionObject().InterpolationAngularVelocity = angularVelocity;
+            if (!updateTransform && (rb.GetCollisionObject().WorldTransform.Origin - currentTransform.Origin).Length > 0.025f)
+                updateTransformNextFrame = true;
 
-            rb.GetComponent<NetworkMesh>().UpdateMeshTransform(currentTransform.Origin.ToUnity(), currentTransform.Orientation.ToUnity());
+            if (updateTransform)
+            {
+                rb.GetComponent<NetworkMesh>().UpdateMeshTransform(currentTransform.Origin.ToUnity(), currentTransform.Orientation.ToUnity());
+
+                rb.GetCollisionObject().WorldTransform = currentTransform;
+                rb.GetCollisionObject().InterpolationLinearVelocity = linearVelocity;
+                rb.GetCollisionObject().InterpolationAngularVelocity = angularVelocity;
+            }
 
             i++;
         }
+
+        updateTransform = updateTransformNextFrame;
     }
 
     /// <summary>

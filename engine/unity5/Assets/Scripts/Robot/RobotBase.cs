@@ -242,10 +242,10 @@ public class RobotBase : NetworkBehaviour
     /// <summary>
     /// Updates the robot's motor information and stats.
     /// </summary>
-    protected void UpdateRobotInfo()
+    protected void UpdateRobotInfo(float[] pwm = null)
     {
         if (rootNode != null && ControlsEnabled)
-            DriveJoints.UpdateAllMotors(rootNode, DriveJoints.GetPwmValues(Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum));
+            DriveJoints.UpdateAllMotors(rootNode, pwm == null ? DriveJoints.GetPwmValues(Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum) : pwm);
         
         UpdateStats();
     }

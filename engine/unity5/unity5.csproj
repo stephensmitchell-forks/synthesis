@@ -298,6 +298,7 @@
     <Compile Include="Assets\Scripts\Robot Camera\RobotCameraGUI.cs" />
     <Compile Include="Assets\Scripts\Robot Camera\RobotCameraManager.cs" />
     <Compile Include="Assets\Scripts\Robot\NetworkMesh.cs" />
+    <Compile Include="Assets\Scripts\Robot\NetworkMeshOld.cs" />
     <Compile Include="Assets\Scripts\Robot\NetworkRobot.cs" />
     <Compile Include="Assets\Scripts\Robot\Robot.cs" />
     <Compile Include="Assets\Scripts\Robot\RobotBase.cs" />

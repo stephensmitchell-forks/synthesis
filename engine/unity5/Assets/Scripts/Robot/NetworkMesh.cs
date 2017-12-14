@@ -5,26 +5,24 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+// TODO: Constant lerp.
+
 public class NetworkMesh : MonoBehaviour
 {
-    private const float CorrectionThreshold = 7.5f;
+    private const float CorrectionThreshold = 5f;
 
     private BRigidBody bRigidBody;
 
-    private Vector3 deltaPosition;
-    private Quaternion deltaRotation;
+    private float positionCorrectionSpeed;
+    private float rotationCorrectionSpeed;
 
     private Vector3 intPosition;
     private Quaternion intRotation;
 
-    private float interpolationFactor;
-
     public void UpdateMeshTransform(Vector3 newPosition, Quaternion newRotation)
     {
-        deltaPosition = newPosition - intPosition;
-        deltaRotation = newRotation * intRotation;
-
-        interpolationFactor = 1.0f;
+        positionCorrectionSpeed = (newPosition - intPosition).magnitude * CorrectionThreshold;//transform.position;
+        rotationCorrectionSpeed = Quaternion.Angle(newRotation, intRotation) * CorrectionThreshold;//transform.rotation;
     }
 
     private void Start()
@@ -37,22 +35,23 @@ public class NetworkMesh : MonoBehaviour
     
     private void Update()
     {
-        interpolationFactor = Math.Max(interpolationFactor - interpolationFactor * CorrectionThreshold * Time.deltaTime, 0);
+        
+        //interpolationFactor = Math.Max(interpolationFactor - interpolationFactor * CorrectionThreshold * Time.deltaTime, 0);
 
-        intPosition = bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity() - deltaPosition * interpolationFactor;
+        //intPosition = bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity() - deltaPosition * interpolationFactor;
 
-        transform.position = intPosition;
+        //transform.position = intPosition;
 
-        Quaternion currentRotation = bRigidBody.GetCollisionObject().WorldTransform.Orientation.ToUnity();
+        //Quaternion currentRotation = bRigidBody.GetCollisionObject().WorldTransform.Orientation.ToUnity();
 
-        if (interpolationFactor > 0)
-            intRotation = Quaternion.Inverse(Quaternion.Lerp(currentRotation, currentRotation * Quaternion.Inverse(deltaRotation), interpolationFactor));
-        else
-            intRotation = currentRotation;
+        //if (interpolationFactor > 0)
+        //    intRotation = Quaternion.Inverse(Quaternion.Lerp(currentRotation, currentRotation * Quaternion.Inverse(deltaRotation), interpolationFactor));
+        //else
+        //    intRotation = currentRotation;
 
-        transform.rotation = intRotation;
+        //transform.rotation = intRotation;
 
-        //Debug.DrawLine(transform.position, bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity());
-        //Debug.DrawLine(transform.position, transform.position + Vector3.up);
+        Debug.DrawLine(transform.position, bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity());
+        Debug.DrawLine(transform.position, transform.position + Vector3.up);
     }
 }
