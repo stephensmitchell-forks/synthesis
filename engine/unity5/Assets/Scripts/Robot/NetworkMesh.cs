@@ -5,53 +5,59 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-// TODO: Constant lerp.
-
 public class NetworkMesh : MonoBehaviour
 {
-    private const float CorrectionThreshold = 5f;
+    private const float CorrectionThreshold = 0.9f;
 
     private BRigidBody bRigidBody;
 
-    private float positionCorrectionSpeed;
-    private float rotationCorrectionSpeed;
+    private Vector3 deltaPosition;
+    private Quaternion deltaRotation;
 
-    private Vector3 intPosition;
-    private Quaternion intRotation;
+    private float interpolationFactor;
 
+    /// <summary>
+    /// Updates the NetworkMesh offset from the given new position and rotations.
+    /// </summary>
+    /// <param name="newPosition"></param>
+    /// <param name="newRotation"></param>
     public void UpdateMeshTransform(Vector3 newPosition, Quaternion newRotation)
     {
-        positionCorrectionSpeed = (newPosition - intPosition).magnitude * CorrectionThreshold;//transform.position;
-        rotationCorrectionSpeed = Quaternion.Angle(newRotation, intRotation) * CorrectionThreshold;//transform.rotation;
+        deltaPosition = newPosition - transform.position;
+        deltaRotation = newRotation * transform.rotation;
+
+        interpolationFactor = 1.0f;
     }
 
+    /// <summary>
+    /// Initializes the NetworkMesh
+    /// </summary>
     private void Start()
     {
-        intPosition = transform.position;
-        intRotation = transform.rotation;
+        deltaPosition = Vector3.zero;
+        deltaRotation = Quaternion.identity;
+
+        interpolationFactor = 0.0f;
 
         bRigidBody = GetComponent<BRigidBody>();
     }
-    
+
+    /// <summary>
+    /// Updates the interpolation factor, which slowly moves the visible mesh to the position of the robot.
+    /// </summary>
+    private void FixedUpdate()
+    {
+        interpolationFactor *= CorrectionThreshold;
+    }
+
+    /// <summary>
+    /// Updates the transform of the visible mesh.
+    /// </summary>
     private void Update()
     {
-        
-        //interpolationFactor = Math.Max(interpolationFactor - interpolationFactor * CorrectionThreshold * Time.deltaTime, 0);
+        transform.position = bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity() - deltaPosition * interpolationFactor;
 
-        //intPosition = bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity() - deltaPosition * interpolationFactor;
-
-        //transform.position = intPosition;
-
-        //Quaternion currentRotation = bRigidBody.GetCollisionObject().WorldTransform.Orientation.ToUnity();
-
-        //if (interpolationFactor > 0)
-        //    intRotation = Quaternion.Inverse(Quaternion.Lerp(currentRotation, currentRotation * Quaternion.Inverse(deltaRotation), interpolationFactor));
-        //else
-        //    intRotation = currentRotation;
-
-        //transform.rotation = intRotation;
-
-        Debug.DrawLine(transform.position, bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity());
-        Debug.DrawLine(transform.position, transform.position + Vector3.up);
+        Quaternion currentRotation = bRigidBody.GetCollisionObject().WorldTransform.Orientation.ToUnity();
+        transform.rotation = Quaternion.Inverse(Quaternion.Lerp(currentRotation, currentRotation * Quaternion.Inverse(deltaRotation), interpolationFactor));
     }
 }

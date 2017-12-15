@@ -12,13 +12,19 @@ using UnityEngine.Networking;
 [NetworkSettings(channel = 0, sendInterval = 0.025f)]
 public class NetworkRobot : RobotBase
 {
+    const float CorrectionPositionThreshold = 0.05f;
+    const float CorrectionRotationThreshold = 15.0f;
+
     BRigidBody[] rigidBodies;
+    NetworkMesh[] networkMeshes;
     bool correctionEnabled = true;
     bool canSendUpdate = true;
-    bool updateTransform = false;
 
     MultiplayerState state;
 
+    /// <summary>
+    /// Loads the Robot and initializes it on the network.
+    /// </summary>
     private void Start()
     {
         string directory = PlayerPrefs.GetString("simSelectedRobot");
@@ -28,15 +34,18 @@ public class NetworkRobot : RobotBase
             state = StateMachine.Instance.FindState<MultiplayerState>();
             state.LoadRobot(this, directory, isLocalPlayer);
             rigidBodies = GetComponentsInChildren<BRigidBody>();
+            networkMeshes = new NetworkMesh[rigidBodies.Length];
 
-            if (!isServer)
-                foreach (BRigidBody rb in rigidBodies)
-                    rb.gameObject.AddComponent<NetworkMesh>();
+            for (int i = 0; i < rigidBodies.Length; i++)
+                networkMeshes[i] = rigidBodies[i].gameObject.AddComponent<NetworkMesh>();
 
             UpdateRobotInfo();
         }
     }
 
+    /// <summary>
+    /// Ensures that the robot is awake and enables sending the next packet to the server.
+    /// </summary>
     private void Update()
     {
         if (Input.GetKey(KeyCode.E))
@@ -54,6 +63,9 @@ public class NetworkRobot : RobotBase
         canSendUpdate = true;
     }
 
+    /// <summary>
+    /// Updates pwm information and sends robot information to the server.
+    /// </summary>
     private void FixedUpdate()
     {
         BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
@@ -65,45 +77,78 @@ public class NetworkRobot : RobotBase
         {
             float[] pwm = DriveJoints.GetPwmValues(Packet == null ? emptyDIO : Packet.dio, ControlIndex, IsMecanum);
 
-            if (!isServer)
-                UpdateRobotInfo(pwm);
+            UpdateRobotInfo(pwm);
 
-            CmdUpdateRobotInfo(pwm);
-        }
-
-        if (isServer && canSendUpdate)
-        {
-            float[] transforms = new float[rigidBodies.Length * 13];
-
-            int i = 0;
-            foreach (BRigidBody rb in rigidBodies)
+            if (correctionEnabled)
             {
-                float[] currentTransform = SerializeTransform(rb.GetCollisionObject().WorldTransform);
+                if (isServer)
+                    RpcUpdateRobotInfo(pwm);
+                else
+                    CmdUpdateRobotInfo(pwm);
+            }
+            
+            if (canSendUpdate && correctionEnabled)
+            {
+                float[] transforms = new float[rigidBodies.Length * 13];
 
-                for (int j = 0; j < currentTransform.Length; j++)
-                    transforms[i * 13 + j] = currentTransform[j];
+                int i = 0;
+                foreach (BRigidBody rb in rigidBodies)
+                {
+                    float[] currentTransform = SerializeTransform(rb.GetCollisionObject().WorldTransform);
 
-                float[] currentLinearVelocity = rb.GetCollisionObject().InterpolationLinearVelocity.ToArray();
+                    for (int j = 0; j < currentTransform.Length; j++)
+                        transforms[i * 13 + j] = currentTransform[j];
 
-                for (int j = 0; j < currentLinearVelocity.Length; j++)
-                    transforms[i * 13 + currentTransform.Length + j] = currentLinearVelocity[j];
+                    float[] currentLinearVelocity = rb.GetCollisionObject().InterpolationLinearVelocity.ToArray();
 
-                float[] currentAngularVelocity = rb.GetCollisionObject().InterpolationAngularVelocity.ToArray();
+                    for (int j = 0; j < currentLinearVelocity.Length; j++)
+                        transforms[i * 13 + currentTransform.Length + j] = currentLinearVelocity[j];
 
-                for (int j = 0; j < currentAngularVelocity.Length; j++)
-                    transforms[i * 13 + currentTransform.Length + currentLinearVelocity.Length + j] = currentAngularVelocity[j];
+                    float[] currentAngularVelocity = rb.GetCollisionObject().InterpolationAngularVelocity.ToArray();
 
-                i++;
+                    for (int j = 0; j < currentAngularVelocity.Length; j++)
+                        transforms[i * 13 + currentTransform.Length + currentLinearVelocity.Length + j] = currentAngularVelocity[j];
+
+                    i++;
+                }
+
+                if (isServer)
+                    RpcUpdateTransforms(transforms);
+                else
+                    CmdUpdateTransforms(transforms);
             }
 
-            RpcUpdateTransforms(transforms);
+            canSendUpdate = false;
         }
-
-        canSendUpdate = false;
     }
 
+    /// <summary>
+    /// Updates pwm information on the server.
+    /// </summary>
+    /// <param name="pwm"></param>
     [Command]
     private void CmdUpdateRobotInfo(float[] pwm)
+    {
+        RemoteUpdateRobotInfo(pwm);
+        RpcUpdateRobotInfo(pwm);
+    }
+
+    /// <summary>
+    /// Updates pwm information on the client.
+    /// </summary>
+    /// <param name="pwm"></param>
+    [ClientRpc]
+    private void RpcUpdateRobotInfo(float[] pwm)
+    {
+        if (!isLocalPlayer)
+            RemoteUpdateRobotInfo(pwm);
+    }
+
+    /// <summary>
+    /// Sends the pwm information of this robot to the server and other clients.
+    /// </summary>
+    /// <param name="pwm"></param>
+    private void RemoteUpdateRobotInfo(float[] pwm)
     {
         if (rootNode != null && ControlsEnabled)
             DriveJoints.UpdateAllMotors(rootNode, pwm);
@@ -111,57 +156,83 @@ public class NetworkRobot : RobotBase
         UpdateStats();
     }
 
+    /// <summary>
+    /// Updates the robot position on the server.
+    /// </summary>
+    /// <param name="transforms"></param>
+    [Command]
+    void CmdUpdateTransforms(float[] transforms)
+    {
+        UpdateTransforms(transforms);
+        RpcUpdateTransforms(transforms);
+    }
+
+    /// <summary>
+    /// Updates the robot position on the client.
+    /// </summary>
+    /// <param name="transforms"></param>
     [ClientRpc]
     void RpcUpdateTransforms(float[] transforms)
     {
-        if (isServer || !correctionEnabled)
+        UpdateTransforms(transforms);
+    }
+
+    /// <summary>
+    /// Updates the robot's transform from the given array of transform information.
+    /// </summary>
+    /// <param name="transforms"></param>
+    void UpdateTransforms(float[] transforms)
+    {
+        if (isLocalPlayer || !correctionEnabled)
             return;
 
-        bool updateTransformNextFrame = false;
-        int i = 0;
-        foreach (BRigidBody rb in rigidBodies)
+        BulletSharp.Math.Matrix[] bmTransforms = new BulletSharp.Math.Matrix[rigidBodies.Length];
+
+        bool correctionRequired = false;
+
+        for (int i = 0; i < bmTransforms.Length; i++)
         {
             float[] rawTransform = new float[7];
 
             for (int j = 0; j < rawTransform.Length; j++)
                 rawTransform[j] = transforms[i * 13 + j];
 
-            BulletSharp.Math.Matrix currentTransform = DeserializeTransform(rawTransform);
+            bmTransforms[i] = DeserializeTransform(rawTransform);
 
+            BulletSharp.Math.Matrix rbTransform = rigidBodies[i].GetCollisionObject().WorldTransform;
+
+            if (!correctionRequired &&
+                ((bmTransforms[i].Origin - rbTransform.Origin).Length > CorrectionPositionThreshold) ||
+                Math.Abs(Quaternion.Angle(bmTransforms[i].Orientation.ToUnity(), rbTransform.Orientation.ToUnity())) > CorrectionRotationThreshold)
+                correctionRequired = true;
+        }
+
+        if (!correctionRequired)
+            return;
+        
+        for (int i = 0; i < bmTransforms.Length; i++)
+        {
             float[] rawLinearVelocity = new float[3];
 
             for (int j = 0; j < rawLinearVelocity.Length; j++)
-                rawLinearVelocity[j] = transforms[i * 13 + rawTransform.Length + j];
+                rawLinearVelocity[j] = transforms[i * 13 + 7 + j];
 
             float[] rawAngularVelocity = new float[3];
 
             for (int j = 0; j < rawAngularVelocity.Length; j++)
-                rawAngularVelocity[j] = transforms[i * 13 + rawTransform.Length + rawLinearVelocity.Length + j];
+                rawAngularVelocity[j] = transforms[i * 13 + 7 + rawLinearVelocity.Length + j];
 
             BulletSharp.Math.Vector3 linearVelocity = new BulletSharp.Math.Vector3(rawLinearVelocity);
             BulletSharp.Math.Vector3 angularVelocity = new BulletSharp.Math.Vector3(rawAngularVelocity);
 
-            int rtt = state.Network.client.GetRTT();
+            networkMeshes[i].UpdateMeshTransform(bmTransforms[i].Origin.ToUnity(), bmTransforms[i].Orientation.ToUnity());
 
-            currentTransform.Origin += linearVelocity * rtt * 0.001f;
-            currentTransform.Orientation.Rotate(angularVelocity * rtt * 0.001f);
+            RigidBody rbCo = (RigidBody)rigidBodies[i].GetCollisionObject();
 
-            if (!updateTransform && (rb.GetCollisionObject().WorldTransform.Origin - currentTransform.Origin).Length > 0.025f)
-                updateTransformNextFrame = true;
-
-            if (updateTransform)
-            {
-                rb.GetComponent<NetworkMesh>().UpdateMeshTransform(currentTransform.Origin.ToUnity(), currentTransform.Orientation.ToUnity());
-
-                rb.GetCollisionObject().WorldTransform = currentTransform;
-                rb.GetCollisionObject().InterpolationLinearVelocity = linearVelocity;
-                rb.GetCollisionObject().InterpolationAngularVelocity = angularVelocity;
-            }
-
-            i++;
+            rbCo.WorldTransform = bmTransforms[i];  
+            rbCo.LinearVelocity = linearVelocity;
+            rbCo.InterpolationAngularVelocity = angularVelocity;
         }
-
-        updateTransform = updateTransformNextFrame;
     }
 
     /// <summary>

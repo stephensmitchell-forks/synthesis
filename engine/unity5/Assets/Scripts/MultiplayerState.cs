@@ -204,7 +204,7 @@ public class MultiplayerState : SimState
             if (isLocal)
                 ActiveRobot = playerRobot;
             else
-                playerRobot.ControlIndex = 0;
+                playerRobot.ControlIndex = 5;
 
             SpawnedRobots.Add(playerRobot);
 
