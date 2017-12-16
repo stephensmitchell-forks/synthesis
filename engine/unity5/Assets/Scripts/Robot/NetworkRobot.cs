@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.BUExtensions;
+﻿using Assets.Scripts;
+using Assets.Scripts.BUExtensions;
 using Assets.Scripts.FSM;
 using BulletSharp;
 using BulletUnity;
@@ -9,9 +10,17 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-[NetworkSettings(channel = 0, sendInterval = 0.025f)]
-public class NetworkRobot : RobotBase
+[NetworkSettings(channel = 0, sendInterval = 0f)]
+public class NetworkRobot : RobotBase, ICollisionCallback
 {
+    enum SyncState : byte
+    {
+        ClientPriority,
+        ServerPriority
+    }
+
+    SyncState syncState;
+
     const float CorrectionPositionThreshold = 0.05f;
     const float CorrectionRotationThreshold = 15.0f;
 
@@ -20,7 +29,18 @@ public class NetworkRobot : RobotBase
     bool correctionEnabled = true;
     bool canSendUpdate = true;
 
+    List<BRigidBody> activeCollisions;
+
     MultiplayerState state;
+
+    /// <summary>
+    /// Initializes the NetworkRobot instance.
+    /// </summary>
+    private void Awake()
+    {
+        syncState = SyncState.ClientPriority;
+        activeCollisions = new List<BRigidBody>();
+    }
 
     /// <summary>
     /// Loads the Robot and initializes it on the network.
@@ -37,7 +57,12 @@ public class NetworkRobot : RobotBase
             networkMeshes = new NetworkMesh[rigidBodies.Length];
 
             for (int i = 0; i < rigidBodies.Length; i++)
+            {
                 networkMeshes[i] = rigidBodies[i].gameObject.AddComponent<NetworkMesh>();
+
+                if (isServer || isLocalPlayer)
+                    rigidBodies[i].gameObject.AddComponent<BMultiCallbacks>().AddCallback(this);
+            }
 
             UpdateRobotInfo();
         }
@@ -68,6 +93,12 @@ public class NetworkRobot : RobotBase
     /// </summary>
     private void FixedUpdate()
     {
+        if (isServer && activeCollisions.Count == 0)
+            SetSyncState(SyncState.ClientPriority);
+
+        if (isLocalPlayer)
+            Debug.Log(syncState);
+
         BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
 
         if (rigidBody == null)
@@ -86,40 +117,41 @@ public class NetworkRobot : RobotBase
                 else
                     CmdUpdateRobotInfo(pwm);
             }
-            
-            if (canSendUpdate && correctionEnabled)
+        }
+
+        if (((isServer && syncState == SyncState.ServerPriority) || (isLocalPlayer && syncState == SyncState.ClientPriority)) &&
+            canSendUpdate && correctionEnabled)
+        {
+            float[] transforms = new float[rigidBodies.Length * 13];
+
+            int i = 0;
+            foreach (BRigidBody rb in rigidBodies)
             {
-                float[] transforms = new float[rigidBodies.Length * 13];
+                float[] currentTransform = SerializeTransform(rb.GetCollisionObject().WorldTransform);
 
-                int i = 0;
-                foreach (BRigidBody rb in rigidBodies)
-                {
-                    float[] currentTransform = SerializeTransform(rb.GetCollisionObject().WorldTransform);
+                for (int j = 0; j < currentTransform.Length; j++)
+                    transforms[i * 13 + j] = currentTransform[j];
 
-                    for (int j = 0; j < currentTransform.Length; j++)
-                        transforms[i * 13 + j] = currentTransform[j];
+                float[] currentLinearVelocity = rb.GetCollisionObject().InterpolationLinearVelocity.ToArray();
 
-                    float[] currentLinearVelocity = rb.GetCollisionObject().InterpolationLinearVelocity.ToArray();
+                for (int j = 0; j < currentLinearVelocity.Length; j++)
+                    transforms[i * 13 + currentTransform.Length + j] = currentLinearVelocity[j];
 
-                    for (int j = 0; j < currentLinearVelocity.Length; j++)
-                        transforms[i * 13 + currentTransform.Length + j] = currentLinearVelocity[j];
+                float[] currentAngularVelocity = rb.GetCollisionObject().InterpolationAngularVelocity.ToArray();
 
-                    float[] currentAngularVelocity = rb.GetCollisionObject().InterpolationAngularVelocity.ToArray();
+                for (int j = 0; j < currentAngularVelocity.Length; j++)
+                    transforms[i * 13 + currentTransform.Length + currentLinearVelocity.Length + j] = currentAngularVelocity[j];
 
-                    for (int j = 0; j < currentAngularVelocity.Length; j++)
-                        transforms[i * 13 + currentTransform.Length + currentLinearVelocity.Length + j] = currentAngularVelocity[j];
-
-                    i++;
-                }
-
-                if (isServer)
-                    RpcUpdateTransforms(transforms);
-                else
-                    CmdUpdateTransforms(transforms);
+                i++;
             }
 
-            canSendUpdate = false;
+            if (isServer)
+                RpcUpdateTransforms(transforms);
+            else
+                CmdUpdateTransforms(transforms);
         }
+
+        canSendUpdate = false;
     }
 
     /// <summary>
@@ -174,7 +206,44 @@ public class NetworkRobot : RobotBase
     [ClientRpc]
     void RpcUpdateTransforms(float[] transforms)
     {
-        UpdateTransforms(transforms);
+        if (!isLocalPlayer || syncState == SyncState.ServerPriority)
+            UpdateTransforms(transforms);
+    }
+
+    /// <summary>
+    /// Sets the SyncState of this robot on the server if called from the local player and
+    /// on the local player if called from the server.
+    /// </summary>
+    /// <param name="state"></param>
+    void SetSyncState(SyncState state)
+    {
+        syncState = state;
+
+        if (isServer)
+            RpcSetSyncState((byte)syncState);
+        else
+            CmdSetSyncState((byte)syncState);
+    }
+
+    /// <summary>
+    /// Sets the SyncState of the robot on the server.
+    /// </summary>
+    /// <param name="state"></param>
+    [Command]
+    void CmdSetSyncState(byte state)
+    {
+        syncState = (SyncState)state;
+    }
+        
+    /// <summary>
+    /// Sets the SyncState of the local robot instance.
+    /// </summary>
+    /// <param name="state"></param>
+    [ClientRpc]
+    void RpcSetSyncState(byte state)
+    {
+        if (isLocalPlayer)
+            syncState = (SyncState)state;
     }
 
     /// <summary>
@@ -183,7 +252,7 @@ public class NetworkRobot : RobotBase
     /// <param name="transforms"></param>
     void UpdateTransforms(float[] transforms)
     {
-        if (isLocalPlayer || !correctionEnabled)
+        if (!correctionEnabled)
             return;
 
         BulletSharp.Math.Matrix[] bmTransforms = new BulletSharp.Math.Matrix[rigidBodies.Length];
@@ -284,5 +353,53 @@ public class NetworkRobot : RobotBase
             vec.Y,
             vec.Z
         };
+    }
+
+    /// <summary>
+    /// Called when a collision initially occurs between a node from this robot and a node from another robot.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="manifoldList"></param>
+    public void BOnCollisionEnter(CollisionObject other, BCollisionCallbacksDefault.PersistentManifoldList manifoldList)
+    {
+        BRigidBody rb = other.UserObject as BRigidBody;
+
+        if (rb == null || !rb.gameObject.name.StartsWith("node_"))
+            return;
+
+        SetSyncState(SyncState.ServerPriority);
+
+        if (isServer)
+            activeCollisions.Add(rb);
+    }
+
+    /// <summary>
+    /// Called when an already established collision exits.
+    /// </summary>
+    /// <param name="other"></param>
+    public void BOnCollisionExit(CollisionObject other)
+    {
+        if (!isServer)
+            return;
+
+        BRigidBody rb = other.UserObject as BRigidBody;
+
+        if (rb != null)
+            activeCollisions.Remove(rb);
+    }
+
+    public void BOnCollisionStay(CollisionObject other, BCollisionCallbacksDefault.PersistentManifoldList manifoldList)
+    {
+        // Not implemented
+    }
+
+    public void OnVisitPersistentManifold(PersistentManifold pm)
+    {
+        // Not implemented
+    }
+
+    public void OnFinishedVisitingManifolds()
+    {
+        // Not implemented
     }
 }
