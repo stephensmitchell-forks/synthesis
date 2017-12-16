@@ -10,6 +10,8 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// TODO: Non-player network objects.
+
 [NetworkSettings(channel = 0, sendInterval = 0f)]
 public class NetworkRobot : RobotBase, ICollisionCallback
 {
@@ -23,11 +25,13 @@ public class NetworkRobot : RobotBase, ICollisionCallback
 
     const float CorrectionPositionThreshold = 0.05f;
     const float CorrectionRotationThreshold = 15.0f;
+    const float StateTransitionTimeout = 0.5f;
 
     BRigidBody[] rigidBodies;
     NetworkMesh[] networkMeshes;
     bool correctionEnabled = true;
     bool canSendUpdate = true;
+    float timeSinceLastContact;
 
     List<BRigidBody> activeCollisions;
 
@@ -40,6 +44,7 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     {
         syncState = SyncState.ClientPriority;
         activeCollisions = new List<BRigidBody>();
+        timeSinceLastContact = 0f;
     }
 
     /// <summary>
@@ -73,6 +78,15 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     /// </summary>
     private void Update()
     {
+        if (isServer)
+        {
+            if (activeCollisions.Count == 0)
+                timeSinceLastContact += Time.deltaTime;
+
+            if (timeSinceLastContact > StateTransitionTimeout)
+                SetSyncState(SyncState.ClientPriority);
+        }
+
         if (Input.GetKey(KeyCode.E))
             correctionEnabled = true;
         else if (Input.GetKey(KeyCode.D))
@@ -93,11 +107,8 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     /// </summary>
     private void FixedUpdate()
     {
-        if (isServer && activeCollisions.Count == 0)
-            SetSyncState(SyncState.ClientPriority);
-
-        if (isLocalPlayer)
-            Debug.Log(syncState);
+        //if (isLocalPlayer)
+        //    Debug.Log(syncState);
 
         BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
 
@@ -206,7 +217,7 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     [ClientRpc]
     void RpcUpdateTransforms(float[] transforms)
     {
-        if (!isLocalPlayer || syncState == SyncState.ServerPriority)
+        if (!isServer && (!isLocalPlayer || syncState == SyncState.ServerPriority))
             UpdateTransforms(transforms);
     }
 
@@ -370,7 +381,10 @@ public class NetworkRobot : RobotBase, ICollisionCallback
         SetSyncState(SyncState.ServerPriority);
 
         if (isServer)
+        {
             activeCollisions.Add(rb);
+            timeSinceLastContact = 0.0f;
+        }
     }
 
     /// <summary>

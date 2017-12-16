@@ -55,6 +55,9 @@ public class NetworkMesh : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        if (interpolationFactor < 0.01f)
+            return;
+
         transform.position = bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity() - deltaPosition * interpolationFactor;
 
         Quaternion currentRotation = bRigidBody.GetCollisionObject().WorldTransform.Orientation.ToUnity();
