@@ -5,6 +5,8 @@ using UnityEngine;
 using BulletUnity;
 using BulletSharp;
 using Assets.Scripts.FEA;
+using UnityEngine.Networking;
+using System.Linq;
 
 public class UnityFieldDefinition : FieldDefinition
 {
@@ -23,7 +25,7 @@ public class UnityFieldDefinition : FieldDefinition
         unityObject = root.gameObject;
     }
 
-    public bool CreateMesh(string filePath)
+    public bool CreateMesh(string filePath, bool multiplayer = false, bool host = false)
     {
         BXDAMesh mesh = new BXDAMesh();
         mesh.ReadFromFile(filePath, null);
@@ -48,9 +50,40 @@ public class UnityFieldDefinition : FieldDefinition
             colliders.Add(new KeyValuePair<BXDAMesh.BXDASubMesh, Mesh>(sub, meshu));
         });
 
+        Dictionary<string, NetworkElement> networkElements = new Dictionary<string, NetworkElement>();
+
+        foreach (NetworkElement ne in Resources.FindObjectsOfTypeAll<NetworkElement>())
+            networkElements[ne.NodeID] = ne;
+
         foreach (FieldNode node in NodeGroup.EnumerateAllLeafFieldNodes())
         {
-            GameObject subObject = new GameObject(node.NodeID);
+            PropertySet? propertySet = null;
+
+            if (GetPropertySets().ContainsKey(node.PropertySetID))
+                propertySet = GetPropertySets()[node.PropertySetID];
+
+            GameObject subObject;
+
+            if (multiplayer && propertySet.HasValue && propertySet.Value.Mass != 0)
+            {
+                if (host)
+                {
+                    subObject = (GameObject)UnityEngine.Object.Instantiate(Resources.Load("prefabs/NetworkElement"), unityObject.transform);
+                    subObject.GetComponent<NetworkElement>().NodeID = node.NodeID;
+                    subObject.name = node.NodeID;
+                    NetworkServer.Spawn(subObject);
+                }
+                else
+                {
+                    subObject = networkElements[node.NodeID].gameObject;
+                    subObject.name = node.NodeID;
+                }
+            }
+            else
+            {
+                subObject = new GameObject(node.NodeID);
+            }
+
             subObject.transform.parent = unityObject.transform;
 
             GameObject meshObject = new GameObject(node.NodeID + "-mesh");
@@ -83,9 +116,9 @@ public class UnityFieldDefinition : FieldDefinition
             // Set the position of the object (scaled by 1/100 to match Unity's scaling correctly).
             meshObject.transform.position = new Vector3(-node.Position.x * 0.01f, node.Position.y * 0.01f, node.Position.z * 0.01f);
 
-            if (GetPropertySets().ContainsKey(node.PropertySetID))
+            if (propertySet.HasValue)
             {
-                PropertySet currentPropertySet = GetPropertySets()[node.PropertySetID];
+                PropertySet currentPropertySet = propertySet.Value;
                 PropertySet.PropertySetCollider psCollider = currentPropertySet.Collider;
 
                 switch (psCollider.CollisionType)

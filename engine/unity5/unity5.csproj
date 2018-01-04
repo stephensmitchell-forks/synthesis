@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.6.3p2</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -251,6 +253,7 @@
     <Compile Include="Assets\Scripts\GUI\UIDrag.cs" />
     <Compile Include="Assets\Scripts\GUI\UserMessageManager.cs" />
     <Compile Include="Assets\Scripts\GodMode.cs" />
+    <Compile Include="Assets\Scripts\Helpers\BulletExtensions.cs" />
     <Compile Include="Assets\Scripts\Helpers\BXDExtensions.cs" />
     <Compile Include="Assets\Scripts\Helpers\MathfExt.cs" />
     <Compile Include="Assets\Scripts\Helpers\UnityExtensions.cs" />
@@ -288,6 +291,7 @@
     <Compile Include="Assets\Scripts\MultiplayerPlayer.cs" />
     <Compile Include="Assets\Scripts\MultiplayerState.cs" />
     <Compile Include="Assets\Scripts\Network\MultiplayerNetwork.cs" />
+    <Compile Include="Assets\Scripts\Network\NetworkElement.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNCommon.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNJoint.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNMesh.cs" />

@@ -15,6 +15,7 @@ using Assets.Scripts;
 using UnityEngine.UI;
 using Assets.Scripts.Utils;
 using Assets.Scripts.Network;
+using UnityEngine.Networking;
 
 /// <summary>
 /// This is the main class of the simulator; it handles all the initialization of robot and field objects within the simulator.
@@ -95,12 +96,6 @@ public class MultiplayerState : SimState
         //loads all the controls
         Controls.Load();
 
-        if (!LoadField(PlayerPrefs.GetString("simSelectedField")))
-        {
-            AppModel.ErrorToMenu("Could not load field: " + PlayerPrefs.GetString("simSelectedField") + "\nHas it been moved or deleted?)");
-            return;
-        }
-
         //initializes the dynamic camera
         DynamicCameraObject = GameObject.Find("Main Camera");
         dynamicCamera = DynamicCameraObject.AddComponent<DynamicCamera>();
@@ -109,6 +104,7 @@ public class MultiplayerState : SimState
         IsMetric = PlayerPrefs.GetString("Measure").Equals("Metric") ? true : false;
 
         Network = GameObject.Find("Network Manager").GetComponent<MultiplayerNetwork>();
+        Network.State = this;
     }
 
     /// <summary>
@@ -167,7 +163,7 @@ public class MultiplayerState : SimState
     /// </summary>
     /// <param name="directory">field directory</param>
     /// <returns>whether the process was successful</returns>
-    bool LoadField(string directory)
+    public bool LoadField(string directory, bool host)
     {
         fieldPath = directory;
 
@@ -185,7 +181,7 @@ public class MultiplayerState : SimState
         fieldDefinition = (UnityFieldDefinition)BXDFProperties.ReadProperties(directory + "\\definition.bxdf", out loadResult);
         Debug.Log(loadResult);
         fieldDefinition.CreateTransform(fieldObject.transform);
-        return fieldDefinition.CreateMesh(directory + "\\mesh.bxda");
+        return fieldDefinition.CreateMesh(directory + "\\mesh.bxda", true, host);
     }
 
     /// <summary>

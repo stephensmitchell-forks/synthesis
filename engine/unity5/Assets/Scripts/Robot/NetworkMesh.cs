@@ -27,6 +27,8 @@ public class NetworkMesh : MonoBehaviour
         deltaRotation = newRotation * transform.rotation;
 
         interpolationFactor = 1.0f;
+
+        // TODO: Try storing the new rotation but interpolate using a delta (e.g. new rotation will change as transform does).
     }
 
     /// <summary>
@@ -38,8 +40,6 @@ public class NetworkMesh : MonoBehaviour
         deltaRotation = Quaternion.identity;
 
         interpolationFactor = 0.0f;
-
-        bRigidBody = GetComponent<BRigidBody>();
     }
 
     /// <summary>
@@ -55,12 +55,12 @@ public class NetworkMesh : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        if (interpolationFactor < 0.01f)
+        if ((bRigidBody == null && (bRigidBody = GetComponent<BRigidBody>()) == null) || interpolationFactor < 0.01f)
             return;
 
         transform.position = bRigidBody.GetCollisionObject().WorldTransform.Origin.ToUnity() - deltaPosition * interpolationFactor;
 
         Quaternion currentRotation = bRigidBody.GetCollisionObject().WorldTransform.Orientation.ToUnity();
-        transform.rotation = Quaternion.Inverse(Quaternion.Lerp(currentRotation, currentRotation * Quaternion.Inverse(deltaRotation), interpolationFactor));
+        transform.rotation = Quaternion.Inverse(Quaternion.Slerp(currentRotation, currentRotation * Quaternion.Inverse(deltaRotation), interpolationFactor));
     }
 }

@@ -10,8 +10,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-// TODO: Non-player network objects.
-
 [NetworkSettings(channel = 0, sendInterval = 0f)]
 public class NetworkRobot : RobotBase, ICollisionCallback
 {
@@ -26,6 +24,9 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     const float CorrectionPositionThreshold = 0.05f;
     const float CorrectionRotationThreshold = 15.0f;
     const float StateTransitionTimeout = 0.5f;
+
+    [SyncVar]
+    public int RobotID = -1;
 
     BRigidBody[] rigidBodies;
     NetworkMesh[] networkMeshes;
@@ -69,6 +70,9 @@ public class NetworkRobot : RobotBase, ICollisionCallback
                     rigidBodies[i].gameObject.AddComponent<BMultiCallbacks>().AddCallback(this);
             }
 
+            if (isLocalPlayer)
+                CmdSetRobotID(state.Network.ConnectionID);
+
             UpdateRobotInfo();
         }
     }
@@ -107,9 +111,6 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     /// </summary>
     private void FixedUpdate()
     {
-        //if (isLocalPlayer)
-        //    Debug.Log(syncState);
-
         BRigidBody rigidBody = GetComponentInChildren<BRigidBody>();
 
         if (rigidBody == null)
@@ -138,7 +139,7 @@ public class NetworkRobot : RobotBase, ICollisionCallback
             int i = 0;
             foreach (BRigidBody rb in rigidBodies)
             {
-                float[] currentTransform = SerializeTransform(rb.GetCollisionObject().WorldTransform);
+                float[] currentTransform = rb.GetCollisionObject().WorldTransform.Serialize();
 
                 for (int j = 0; j < currentTransform.Length; j++)
                     transforms[i * 13 + j] = currentTransform[j];
@@ -258,6 +259,16 @@ public class NetworkRobot : RobotBase, ICollisionCallback
     }
 
     /// <summary>
+    /// Changes the RobotID value as sent from the client.
+    /// </summary>
+    /// <param name="robotID"></param>
+    [Command]
+    void CmdSetRobotID(int robotID)
+    {
+        RobotID = robotID;
+    }
+
+    /// <summary>
     /// Updates the robot's transform from the given array of transform information.
     /// </summary>
     /// <param name="transforms"></param>
@@ -277,7 +288,7 @@ public class NetworkRobot : RobotBase, ICollisionCallback
             for (int j = 0; j < rawTransform.Length; j++)
                 rawTransform[j] = transforms[i * 13 + j];
 
-            bmTransforms[i] = DeserializeTransform(rawTransform);
+            bmTransforms[i] = BulletExtensions.DeserializeTransform(rawTransform);
 
             BulletSharp.Math.Matrix rbTransform = rigidBodies[i].GetCollisionObject().WorldTransform;
 
@@ -311,59 +322,8 @@ public class NetworkRobot : RobotBase, ICollisionCallback
 
             rbCo.WorldTransform = bmTransforms[i];  
             rbCo.LinearVelocity = linearVelocity;
-            rbCo.InterpolationAngularVelocity = angularVelocity;
+            rbCo.AngularVelocity = angularVelocity;
         }
-    }
-
-    /// <summary>
-    /// Serializes the given Matrix into an array of floats.
-    /// </summary>
-    /// <param name="matrix"></param>
-    /// <returns></returns>
-    private float[] SerializeTransform(BulletSharp.Math.Matrix matrix)
-    {
-        return new float[]
-        {
-            matrix.Origin.X,
-            matrix.Origin.Y,
-            matrix.Origin.Z,
-            matrix.Orientation.X,
-            matrix.Orientation.Y,
-            matrix.Orientation.Z,
-            matrix.Orientation.W
-        };
-    }
-
-    /// <summary>
-    /// Deserializes the given array of floats in to a Matrix.
-    /// </summary>
-    /// <param name="transform"></param>
-    /// <returns></returns>
-    private BulletSharp.Math.Matrix DeserializeTransform(float[] transform)
-    {
-        if (transform.Length != 7)
-            return BulletSharp.Math.Matrix.Identity;
-
-        return new BulletSharp.Math.Matrix
-        {
-            Origin = new BulletSharp.Math.Vector3(transform[0], transform[1], transform[2]),
-            Orientation = new BulletSharp.Math.Quaternion(transform[3], transform[4], transform[5], transform[6])
-        };
-    }
-
-    /// <summary>
-    /// Serializes the given RigidBody linear velocity into an array of floats.
-    /// </summary>
-    /// <param name="rigidBody"></param>
-    /// <returns></returns>
-    private float[] SerializeVector3(BulletSharp.Math.Vector3 vec)
-    {
-        return new float[]
-        {
-            vec.X,
-            vec.Y,
-            vec.Z
-        };
     }
 
     /// <summary>
