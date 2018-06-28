@@ -263,6 +263,7 @@
     <Compile Include="Assets\Scripts\MultiplayerState.cs" />
     <Compile Include="Assets\Scripts\Network\MultiplayerNetwork.cs" />
     <Compile Include="Assets\Scripts\Network\NetworkElement.cs" />
+    <Compile Include="Assets\Scripts\Network\ServerNetworkDiscovery.cs" />
     <Compile Include="Assets\Scripts\Network\ServerStatus.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNCommon.cs" />
     <Compile Include="Assets\Scripts\RigidNode\RNJoint.cs" />

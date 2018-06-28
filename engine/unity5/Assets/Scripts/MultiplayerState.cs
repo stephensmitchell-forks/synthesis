@@ -117,7 +117,8 @@ public class MultiplayerState : SimState
             if (Input.GetKey(KeyCode.G))
             {
                 clientNetworkMode = NetworkMode.Client;
-                Network.StartClient();
+                //Network.StartClient();
+                GameObject.Find("Network Manager").AddComponent<ServerNetworkDiscovery>();
             }
             else if (Input.GetKey(KeyCode.H))
             {

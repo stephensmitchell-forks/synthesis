@@ -6,17 +6,15 @@ using Newtonsoft.Json;
 
 namespace Assets.Scripts.Network
 {
-
-
-    class ServerStatus
+    public class ServerStatus
     {
-
         public enum ServerStatusCode
         {
             Active = 0,
             Offline = 1,
             Full = 2
         }
+
         String serverName;
 
         ServerStatusCode statusCode;
@@ -28,7 +26,8 @@ namespace Assets.Scripts.Network
         {
             return JsonConvert.SerializeObject(this);
         }
-        static ServerStatus deserialize(String jsonData)
+
+        public static ServerStatus deserialize(String jsonData)
         {
             ServerStatus serverStatus = JsonConvert.DeserializeObject<ServerStatus>(jsonData);
             return serverStatus;
