@@ -3,7 +3,7 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 
-public partial class SurfaceExporter
+public static partial class SurfaceExporter
 {
     /// <summary>
     /// The minimum percent a sub component's bounding box volume of the largest bounding box volume for an object
@@ -18,7 +18,7 @@ public partial class SurfaceExporter
     /// <param name="mesh">Mesh to store physics data in.</param>
     /// <param name="ignorePhysics">True to ignore physics in component.</param>
     /// <returns>All the sufaces to export</returns>
-    private void GenerateExportList(ComponentOccurrence occ, List<SurfaceBody> plannedExports, PhysicalProperties physics, double minVolume = 0, bool ignorePhysics = false)
+    private static void GenerateExportList(ComponentOccurrence occ, List<SurfaceBody> plannedExports, PhysicalProperties physics, double minVolume = 0, bool ignorePhysics = false)
     {
         // Invisible objects don't need to be exported
         if (!occ.Visible)
@@ -57,7 +57,7 @@ public partial class SurfaceExporter
     /// <param name="group">The group to export from</param>
     /// <param name="mesh">Mesh to store physics data in.</param>
     /// <returns>All the sufaces to export</returns>
-    private List<SurfaceBody> GenerateExportList(CustomRigidGroup group, PhysicalProperties physics)
+    private static List<SurfaceBody> GenerateExportList(CustomRigidGroup group, PhysicalProperties physics)
     {
         List<SurfaceBody> plannedExports = new List<SurfaceBody>();
 

@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public partial class SurfaceExporter
+public static partial class SurfaceExporter
 {
-    public SurfaceExporter()
+    public static void ClearAssets()
     {
         assets.Clear();
     }
@@ -16,7 +16,7 @@ public partial class SurfaceExporter
     /// </summary>
     /// <param name="group">Group to export from</param>
     /// <param name="reporter">Progress reporter</param>
-    public BXDAMesh ExportAll(CustomRigidGroup group, Guid guid, BXDIO.ProgressReporter reporter = null)
+    public static BXDAMesh ExportAll(CustomRigidGroup group, Guid guid, BXDIO.ProgressReporter reporter = null)
     {
         // Create output mesh
         MeshController outputMesh = new MeshController(guid);

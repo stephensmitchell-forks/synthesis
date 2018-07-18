@@ -9,7 +9,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Exports Inventor objects into the BXDA format.  One instance per thread.
 /// </summary>
-public partial class SurfaceExporter
+public static partial class SurfaceExporter
 {
     public class TooManyVerticesException : ApplicationException
     {
@@ -51,7 +51,7 @@ public partial class SurfaceExporter
     /// </summary>
     /// <param name="appearance">Inventor Asset to find AssetProperties based on.</param>
     /// <returns>AssetProperties based on the Inventor Asset. May be pre-existing or newly created.</returns>
-    private AssetProperties GetAssetProperties(Asset appearance)
+    private static AssetProperties GetAssetProperties(Asset appearance)
     {
         string assetName = appearance.DisplayName;
 
@@ -72,7 +72,7 @@ public partial class SurfaceExporter
     /// </summary>
     /// <param name="surf">Surface to analyze</param>
     /// <returns>True if multiple assets exist on the surface.</returns>
-    private bool MultipleAssets(Faces surfaceFaces)
+    private static bool MultipleAssets(Faces surfaceFaces)
     {
         string firstAssetName = null;
 
@@ -90,7 +90,7 @@ public partial class SurfaceExporter
     /// <summary>
     /// Calculates the facets of a surface, storing them in a <see cref="MeshController"/>.
     /// </summary>
-    private void CalculateSurfaceFacets(SurfaceBody surf, MeshController outputMesh, bool separateFaces = false)
+    private static void CalculateSurfaceFacets(SurfaceBody surf, MeshController outputMesh, bool separateFaces = false)
     {
         double tolerance = DEFAULT_TOLERANCE;
 

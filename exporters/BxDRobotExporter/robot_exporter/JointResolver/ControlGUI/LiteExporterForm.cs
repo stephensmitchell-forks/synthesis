@@ -12,6 +12,7 @@ using System.Diagnostics;
 using Inventor;
 using System.Threading;
 using OGLViewer;
+using System.Threading.Tasks;
 
 public partial class LiteExporterForm : Form
 {
@@ -112,11 +113,11 @@ public partial class LiteExporterForm : Form
     /// </summary>
     /// <param name="current">Current progress as a percent (0 to 1).</param>
     /// <param name="message">Message to display next to progress bar. Does not change text if message is null.</param>
-    public void SetProgress(double current, string message = null)
+    public void SetProgressBar(double current, string message = null)
     {
         if (InvokeRequired)
         {
-            BeginInvoke((Action<double, string>)SetProgress, current, message);
+            BeginInvoke((Action<double, string>)SetProgressBar, current, message);
             return;
         }
 
@@ -189,7 +190,6 @@ public partial class LiteExporterForm : Form
     /// <returns></returns>
     public List<BXDAMesh> ExportMeshesLite(RigidNode_Base baseNode, float totalMassKg)
     {
-        SurfaceExporter surfs = new SurfaceExporter();
         BXDJSkeleton.SetupFileNames(baseNode);
 
         List<RigidNode_Base> nodes = new List<RigidNode_Base>();
@@ -197,11 +197,23 @@ public partial class LiteExporterForm : Form
 
         List<BXDAMesh> meshes = new List<BXDAMesh>();
 
-        SetProgress(0, "Exporting Model");
+        // Track progress of exporting
+        SetProgressBar(0, "Exporting Model");
+        Progress masterProgress = null;
+        masterProgress = new Progress(() => { SetProgressBar(masterProgress.Status); });
 
-        for (int i = 0; i < nodes.Count; i++)
+        Dictionary<RigidNode_Base, Progress> nodeProgressDict = new Dictionary<RigidNode_Base, Progress>();
+        foreach (RigidNode_Base node in nodes)
+            nodeProgressDict.Add(node, new Progress(masterProgress));
+
+        // Export each node
+        SurfaceExporter.ClearAssets();
+
+        Parallel.ForEach(nodes, (RigidNode_Base node) =>
         {
-            RigidNode_Base node = nodes[i];
+            Progress nodeProgress;
+            lock (nodeProgressDict)
+                nodeProgress = nodeProgressDict[node];
 
             if (node is RigidNode && node.GetModel() != null && node.ModelFileName != null && node.GetModel() is CustomRigidGroup)
             {
@@ -209,22 +221,20 @@ public partial class LiteExporterForm : Form
                 {
                     CustomRigidGroup group = (CustomRigidGroup)node.GetModel();
 
-                    BXDAMesh output = surfs.ExportAll(group, node.GUID, (long progress, long total) =>
-                    {
-                        SetProgress(((double)progress / total) / nodes.Count + (double)i / nodes.Count);
-                    });
+                    BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, (long progress, long total) => { nodeProgress.Status = (double)progress / total; });
                     
                     output.colliders.Clear();
                     output.colliders.AddRange(ConvexHullCalculator.GetHull(output));
 
-                    meshes.Add(output);
+                    lock (meshes)
+                        meshes.Add(output);
                 }
                 catch (Exception e)
                 {
                     throw new Exception("Error exporting mesh: " + node.GetModelID(), e);
                 }
             }
-        }
+        });
 
         // Apply custom mass to mesh
         if (totalMassKg > 0) // Negative value indicates that default mass should be left alone (TODO: Make default mass more accurate)

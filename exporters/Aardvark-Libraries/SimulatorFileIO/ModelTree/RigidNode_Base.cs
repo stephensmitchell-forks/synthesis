@@ -69,6 +69,28 @@ public class RigidNode_Base
     }
 
     /// <summary>
+    /// Gets the hash of the node's GUID. Used for checking equality.
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        return GUID.GetHashCode();
+    }
+
+    /// <summary>
+    /// Checks if two rigidnodes are the same rigidnode.
+    /// </summary>
+    /// <param name="obj">Other rigidnode</param>
+    /// <returns>True if the same</returns>
+    public override bool Equals(object obj)
+    {
+        if (obj != null && obj is RigidNode_Base other)
+            return GUID == other.GUID;
+        else
+            return false;
+    }
+
+    /// <summary>
     /// Adds the given node as a child of this node.
     /// </summary>
     /// <param name="joint">The joint connecting this node to the child</param>

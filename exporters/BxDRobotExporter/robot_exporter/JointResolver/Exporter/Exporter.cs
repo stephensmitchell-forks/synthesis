@@ -134,7 +134,7 @@ public class Exporter
     
     public static List<BXDAMesh> ExportMeshes(RigidNode_Base baseNode, bool useOCL = false)
     {
-        SurfaceExporter surfs = new SurfaceExporter();
+        SurfaceExporter.ClearAssets();
         BXDJSkeleton.SetupFileNames(baseNode);
 
         List<RigidNode_Base> nodes = new List<RigidNode_Base>();
@@ -156,7 +156,7 @@ public class Exporter
                     SynthesisGUI.Instance.ExporterReset();
                     CustomRigidGroup group = (CustomRigidGroup)node.GetModel();
                     Console.WriteLine("Exporting meshes...");
-                    BXDAMesh output = surfs.ExportAll(group, node.GUID, (long progress, long total) =>
+                    BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, (long progress, long total) =>
                     {
                         double totalProgress = (((double)progress / (double)total) * 100.0);
                         SynthesisGUI.Instance.ExporterSetSubText(String.Format("Export {1} / {2}", Math.Round(totalProgress, 2), progress, total));
