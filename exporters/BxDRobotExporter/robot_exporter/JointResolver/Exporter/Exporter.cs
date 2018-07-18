@@ -156,12 +156,7 @@ public class Exporter
                     SynthesisGUI.Instance.ExporterReset();
                     CustomRigidGroup group = (CustomRigidGroup)node.GetModel();
                     Console.WriteLine("Exporting meshes...");
-                    BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, (long progress, long total) =>
-                    {
-                        double totalProgress = (((double)progress / (double)total) * 100.0);
-                        SynthesisGUI.Instance.ExporterSetSubText(String.Format("Export {1} / {2}", Math.Round(totalProgress, 2), progress, total));
-                        SynthesisGUI.Instance.ExporterSetProgress(totalProgress);
-                    });
+                    BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, null);
                     Console.WriteLine();
                     Console.WriteLine("Output: " + output.meshes.Count + " meshes");
                     Console.WriteLine("Computing colliders...");

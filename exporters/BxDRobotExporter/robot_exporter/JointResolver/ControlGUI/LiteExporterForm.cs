@@ -195,7 +195,12 @@ public partial class LiteExporterForm : Form
         List<RigidNode_Base> nodes = new List<RigidNode_Base>();
         baseNode.ListAllNodes(nodes);
 
-        List<BXDAMesh> meshes = new List<BXDAMesh>();
+        // Meshes are stored in an array, indexed based upon the index of the node associated with them
+        Dictionary<RigidNode_Base, int> nodeIndexDict = new Dictionary<RigidNode_Base, int>();
+        for (int i = 0; i < nodes.Count; i++)
+            nodeIndexDict.Add(nodes[i], i);
+
+        BXDAMesh[] meshes = new BXDAMesh[nodes.Count];
 
         // Track progress of exporting
         SetProgressBar(0, "Exporting Model");
@@ -222,12 +227,11 @@ public partial class LiteExporterForm : Form
                     CustomRigidGroup group = (CustomRigidGroup)node.GetModel();
 
                     BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, (long progress, long total) => { nodeProgress.Status = (double)progress / total; });
-                    
+
                     output.colliders.Clear();
                     output.colliders.AddRange(ConvexHullCalculator.GetHull(output));
 
-                    lock (meshes)
-                        meshes.Add(output);
+                    meshes[nodeIndexDict[node]] = output;
                 }
                 catch (Exception e)
                 {
@@ -236,25 +240,21 @@ public partial class LiteExporterForm : Form
             }
         });
 
-        // Apply custom mass to mesh
+        // Apply custom mass to mesh by adjusting each node's mass so that the total equals the set mass
         if (totalMassKg > 0) // Negative value indicates that default mass should be left alone (TODO: Make default mass more accurate)
         {
             float totalDefaultMass = 0;
-            foreach (BXDAMesh mesh in meshes)
-            {
-                totalDefaultMass += mesh.physics.mass;
-            }
-            for (int i = 0; i < meshes.Count; i++)
-            {
+            for (int i = 0; i < nodes.Count; i++)
+                totalDefaultMass += meshes[i].physics.mass;
+
+            for (int i = 0; i < nodes.Count; i++)
                 meshes[i].physics.mass = totalMassKg * (float)(meshes[i].physics.mass / totalDefaultMass);
-            }
         }
 
         // Add meshes to all nodes
-        for (int i = 0; i < meshes.Count; i++)
-        {
-            ((OGL_RigidNode)nodes[i]).loadMeshes(meshes[i]);
-        }
+        for (int i = 0; i < nodes.Count; i++)
+            if (nodes[i] is OGL_RigidNode oglNode)
+                oglNode.loadMeshes(meshes[i]);
 
         // Get wheel information (radius, center, etc.) for all wheels
         foreach (RigidNode_Base node in nodes)
@@ -280,6 +280,6 @@ public partial class LiteExporterForm : Form
             }
         }
 
-        return meshes;
+        return meshes.ToList();
     }
 }

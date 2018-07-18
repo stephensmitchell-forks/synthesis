@@ -16,7 +16,7 @@ public static partial class SurfaceExporter
     /// </summary>
     /// <param name="group">Group to export from</param>
     /// <param name="reporter">Progress reporter</param>
-    public static BXDAMesh ExportAll(CustomRigidGroup group, Guid guid, BXDIO.ProgressReporter reporter = null)
+    public static BXDAMesh ExportAll(CustomRigidGroup group, Guid guid, Progress progressReporter)
     {
         // Create output mesh
         MeshController outputMesh = new MeshController(guid);
@@ -28,7 +28,7 @@ public static partial class SurfaceExporter
         if (plannedSurfaces.Count > 0)
         {
             // Reset progress bar
-            reporter?.Invoke(0, plannedSurfaces.Count);
+            progressReporter.Status = 0;
 
             // Start jobs
             int totalJobsFinished = 0;
@@ -41,7 +41,7 @@ public static partial class SurfaceExporter
                 lock (finishLock)
                 {
                     totalJobsFinished++;
-                    reporter?.Invoke(totalJobsFinished, plannedSurfaces.Count);
+                    progressReporter.Status = (double)totalJobsFinished / plannedSurfaces.Count;
                 }
             });
 
