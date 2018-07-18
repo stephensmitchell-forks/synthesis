@@ -125,7 +125,7 @@ public partial class LiteExporterForm : Form
             ProgressLabel.Text = message;
         ProgressBar.Style = ProgressBarStyle.Continuous;
         ProgressBar.Maximum = 10000;
-        ProgressBar.Value = (int) (current * 10000);
+        ProgressBar.Value = (int)(current * 10000);
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public partial class LiteExporterForm : Form
     {
         if (ExporterWorker.IsBusy)
             ExporterWorker.CancelAsync();
-        
+
         if (ExporterWorker.CancellationPending)
             Dispose();
     }
@@ -173,7 +173,7 @@ public partial class LiteExporterForm : Form
 #else
             MessageBox.Show(e.Error.Message);
 #endif
-        } 
+        }
         #endregion
         else
         {
@@ -226,7 +226,7 @@ public partial class LiteExporterForm : Form
                 {
                     CustomRigidGroup group = (CustomRigidGroup)node.GetModel();
 
-                    BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, (long progress, long total) => { nodeProgress.Status = (double)progress / total; });
+                    BXDAMesh output = SurfaceExporter.ExportAll(group, node.GUID, nodeProgress);
 
                     output.colliders.Clear();
                     output.colliders.AddRange(ConvexHullCalculator.GetHull(output));
