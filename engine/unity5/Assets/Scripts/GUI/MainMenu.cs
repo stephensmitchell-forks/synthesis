@@ -6,6 +6,11 @@ using Synthesis.FSM;
 using System.Reflection;
 using Synthesis.States;
 using Synthesis.Utils;
+using System.Security.Cryptography.X509Certificates;
+using Newtonsoft.Json;
+using System.Net;
+using System.Net.Security;
+using Assets.Scripts;
 
 namespace Synthesis.GUI
 {
@@ -25,6 +30,47 @@ namespace Synthesis.GUI
             //Renders the message manager which displays error messages
             UserMessageManager.Render();
             UserMessageManager.scale = canvas.scaleFactor;
+        }
+
+        public bool MyRemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            bool isOk = true;
+            // If there are errors in the certificate chain, look at each error to determine the cause.
+            if (sslPolicyErrors != SslPolicyErrors.None)
+            {
+                for (int i = 0; i < chain.ChainStatus.Length; i++)
+                {
+                    if (chain.ChainStatus[i].Status != X509ChainStatusFlags.RevocationStatusUnknown)
+                    {
+                        chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                        chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                        chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 1, 0);
+                        chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
+                        bool chainIsValid = chain.Build((X509Certificate2)certificate);
+                        if (!chainIsValid)
+                        {
+                            isOk = false;
+                        }
+                    }
+                }
+            }
+            return isOk;
+        }
+
+        private void Awake()
+        {
+            WebClient client = new WebClient();
+            ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+            var json = new WebClient().DownloadString("https://raw.githubusercontent.com/Autodesk/synthesis/auto-updater/VersionManager.json");
+            VersionManager update = JsonConvert.DeserializeObject<VersionManager>(json);
+            //Console.WriteLine(update.Version);
+            //Console.ReadLine();
+            string CurrentVersion = "4.1.0.0";
+            var localVersion = new Version(CurrentVersion);
+            var globalVersion = new Version(update.Version);
+            var check = localVersion.CompareTo(globalVersion);
+            if (check < 0)
+                client.DownloadFile(update.URL, @"C:\Users\t_moram\Downloads\Synthesis Installer.exe");
         }
 
         /// <summary>
