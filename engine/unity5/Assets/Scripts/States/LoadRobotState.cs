@@ -27,8 +27,9 @@ namespace Synthesis.States
         /// </summary>
         public override void Start()
         {
-            robotDirectory = PlayerPrefs.GetString("RobotDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "//synthesis//Robots"));
+            robotDirectory = PlayerPrefs.GetString("RobotDirectory", @"/home/mat/synthesis/Robots");
             robotList = GameObject.Find("SimLoadRobotList").GetComponent<SelectScrollable>();
+            UserMessageManager.Dispatch("Please see me...", 5);
         }
 
         /// <summary>
@@ -54,23 +55,26 @@ namespace Synthesis.States
         public void OnSelectRobotButtonPressed()
         {
             GameObject robotList = GameObject.Find("SimLoadRobotList");
-            string entry = (robotList.GetComponent<SelectScrollable>().selectedEntry);
-            if (entry != null)
-            {
-                string simSelectedRobotName = robotList.GetComponent<SelectScrollable>().selectedEntry;
+            //string entry = (robotList.GetComponent<SelectScrollable>().selectedEntry);
+            //if (entry != null)
+            //{
+                //string simSelectedRobotName = robotList.GetComponent<SelectScrollable>().selectedEntry;
 
-                PlayerPrefs.SetString("simSelectedRobot", robotDirectory + "\\" + simSelectedRobotName + "\\");
-                PlayerPrefs.SetString("simSelectedRobotName", simSelectedRobotName);
+            //PlayerPrefs.SetString("simSelectedRobot", robotDirectory + @"\" + simSelectedRobotName + @"\");
+            //PlayerPrefs.SetString("simSelectedRobotName", simSelectedRobotName);
 
-                if (nextState == null)
+            PlayerPrefs.SetString("simSelectedRobot", @"/home/mat/synthesis/Robots/Dozer");
+            PlayerPrefs.SetString("simSelectedRobotName", "Dozer");
+
+            if (nextState == null)
                     StateMachine.PopState();
                 else
                     StateMachine.PushState(nextState);
-            }
-            else
-            {
-                UserMessageManager.Dispatch("No Robot Selected!", 2);
-            }
+            //}
+            //else
+            //{
+            //    UserMessageManager.Dispatch("No Robot Selected!", 2);
+            //}
         }
 
         /// <summary>

@@ -81,19 +81,19 @@ namespace Synthesis.GUI
             file.Directory.Create();
 
             //Assigns the currently store registry values or default file path to the proper variables if they exist.
-            string robotDirectory = PlayerPrefs.GetString("RobotDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "//synthesis//Robots"));
-            string fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "//synthesis//Fields"));
+            string robotDirectory = PlayerPrefs.GetString("RobotDirectory", (@"/home/mat/synthesis/Robots"));
+            string fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (@"/home/mat/synthesis/Fields"));
 
             //If the directory doesn't exist, create it.
             if (!Directory.Exists(robotDirectory))
             {
-                file = new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Synthesis\\Robots\\");
+                file = new FileInfo(@"/home/mat/synthesis/Robots");
                 file.Directory.Create();
                 robotDirectory = file.Directory.FullName;
             }
             if (!Directory.Exists(fieldDirectory))
             {
-                file = new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Synthesis\\Fields\\");
+                file = new FileInfo(@"/home/mat/synthesis/Fields");
                 file.Directory.Create();
                 fieldDirectory = file.Directory.FullName;
             }

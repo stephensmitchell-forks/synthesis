@@ -31,10 +31,11 @@ namespace Synthesis.States
         /// </summary>
         public override void Start()
         {
-            fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "//synthesis//Fields"));
+            fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (@"/home/mat/synthesis/Fields"));
             mixAndMatchModeScript = Auxiliary.FindGameObject("MixAndMatchModeScript");
             splashScreen = Auxiliary.FindGameObject("LoadSplash");
             fieldList = GameObject.Find("SimLoadFieldList").GetComponent<SelectScrollable>();
+            UserMessageManager.Dispatch("Please see me...", 5);
         }
 
         /// <summary>
@@ -61,12 +62,15 @@ namespace Synthesis.States
         {
             GameObject fieldList = GameObject.Find("SimLoadFieldList");
             string entry = (fieldList.GetComponent<SelectScrollable>().selectedEntry);
-            if (entry != null)
-            {
-                string simSelectedFieldName = fieldList.GetComponent<SelectScrollable>().selectedEntry;
-                string simSelectedField = fieldDirectory + "\\" + simSelectedFieldName + "\\";
+            //if (entry != null)
+            //{
+                //string simSelectedFieldName = fieldList.GetComponent<SelectScrollable>().selectedEntry;
+                //string simSelectedField = fieldDirectory + @"\" + simSelectedFieldName + @"\";
 
-                if (StateMachine.FindState<MixAndMatchState>() != null) //Starts the MixAndMatch scene
+            string simSelectedFieldName = "2016 Stronghold";
+            string simSelectedField = @"/home/mat/synthesis/Fields/2016 Stronghold";
+
+            if (StateMachine.FindState<MixAndMatchState>() != null) //Starts the MixAndMatch scene
                 {
                     PlayerPrefs.SetString("simSelectedField", simSelectedField);
                     PlayerPrefs.SetString("simSelectedFieldName", simSelectedFieldName);
@@ -84,11 +88,11 @@ namespace Synthesis.States
                     else
                         StateMachine.PushState(nextState);
                 }
-            }
-            else
-            {
-                UserMessageManager.Dispatch("No Field Selected!", 2);
-            }
+            //}
+            //else
+            //{
+            //    UserMessageManager.Dispatch("No Field Selected!", 2);
+            //}
         }
 
         /// <summary>

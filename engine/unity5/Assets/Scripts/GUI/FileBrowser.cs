@@ -61,7 +61,7 @@ namespace Synthesis.GUI
         /// <summary>
         /// Default Directory Path
         /// </summary>
-        private string directoryPath = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        private string directoryPath = @"/home/mat/synthesis/Fields";
         private string backupPath = new DirectoryInfo(Application.dataPath).FullName;
 
         /// <summary>

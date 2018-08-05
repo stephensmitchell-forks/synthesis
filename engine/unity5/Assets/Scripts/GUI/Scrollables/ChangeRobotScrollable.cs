@@ -26,7 +26,7 @@ namespace Synthesis.GUI.Scrollables
 
         void OnEnable()
         {
-            directory = PlayerPrefs.GetString("RobotDirectory", (System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "//synthesis//Robots"));
+            directory = PlayerPrefs.GetString("RobotDirectory", (@"/home/mat/synthesis/Fields"));
             items = new List<string>();
             items.Clear();
 
