@@ -14,6 +14,9 @@ namespace FieldExporter.Components
     public partial class JointPropertiesForm : UserControl
     {
         private BXDVector3 _center = new BXDVector3(0, 0, 0);
+        /// <summary>
+        /// Center point of the joint's rotational motion
+        /// </summary>
         public BXDVector3 Center
         {
             get => _center;
@@ -31,6 +34,9 @@ namespace FieldExporter.Components
         }
 
         private BXDVector3 _axis = new BXDVector3(1, 0, 0);
+        /// <summary>
+        /// Axis about which the joint rotates
+        /// </summary>
         public BXDVector3 Axis
         {
             get => _axis;
@@ -51,7 +57,10 @@ namespace FieldExporter.Components
         {
             InitializeComponent();
         }
-
+        
+        /// <summary>
+        /// True if the joint checkbox is selected.
+        /// </summary>
         public bool IsJointed
         {
             get => jointCheckBox.Checked;
@@ -59,7 +68,7 @@ namespace FieldExporter.Components
         }
 
         /// <summary>
-        /// Returns the configured gamepiece settings, or null if not a gamepiece.
+        /// Returns the configured joint settings, or null if not jointed.
         /// </summary>
         /// <returns></returns>
         public PropertySet.FieldJoint Joint
@@ -93,9 +102,9 @@ namespace FieldExporter.Components
             selectEvents.OnSelect += selectEvents_OnSelect;
 
             if (selectingCenter)
-                selectEvents.AddSelectionFilter(SelectionFilterEnum.kSketchPointFilter);
+                selectEvents.AddSelectionFilter(SelectionFilterEnum.kSketchPointFilter); // Select sketch points for center point
             else
-                selectEvents.AddSelectionFilter(SelectionFilterEnum.kSketchCurveLinearFilter);
+                selectEvents.AddSelectionFilter(SelectionFilterEnum.kSketchCurveLinearFilter); // Select sketch lines for axis
         }
 
         bool selectingCenter = false;
@@ -133,6 +142,7 @@ namespace FieldExporter.Components
                     interactionEvents.OnActivate += interactionEvents_OnActivate;
                     interactionEvents.Start();
 
+                    // Block other select button from being pressed.
                     if (selectingCenter)
                     {
                         selectCenterButton.Text = "Cancel";
@@ -223,6 +233,7 @@ namespace FieldExporter.Components
                 if (selectingCenter || selectingAxis)
                     DisableInteractionEvents();
 
+                // Reset selected info when joint is disabled.
                 Center = new BXDVector3(0, 0, 0);
                 Axis = new BXDVector3(1, 0, 0);
 
