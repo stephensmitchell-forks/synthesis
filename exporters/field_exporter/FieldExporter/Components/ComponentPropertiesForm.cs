@@ -127,6 +127,30 @@ namespace FieldExporter.Controls
                     dynamicCheckBox.Checked = true;
             }
         }
+        
+        /// <summary>
+        /// The currently configured joint information.
+        /// </summary>
+        public PropertySet.FieldJoint Joint
+        {
+            get => null;
+            //set
+            //{
+            //    decimal dec = (decimal)value;
+
+            //    if (dec > massNumericUpDown.Maximum)
+            //        dec = massNumericUpDown.Maximum;
+            //    else if (dec < massNumericUpDown.Minimum)
+            //        dec = massNumericUpDown.Minimum;
+
+            //    massNumericUpDown.Value = dec;
+
+            //    if (value == 0)
+            //        dynamicCheckBox.Checked = false;
+            //    else
+            //        dynamicCheckBox.Checked = true;
+            //}
+        }
 
         /// <summary>
         /// Returns the configured gamepiece settings, or null if not a gamepiece.

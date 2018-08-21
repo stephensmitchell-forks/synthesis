@@ -73,7 +73,8 @@ namespace FieldExporter.Components
                                 tabPage.Name,
                                 tabPage.ChildForm.Collider,
                                 tabPage.ChildForm.Friction,
-                                tabPage.ChildForm.Mass));
+                                tabPage.ChildForm.Mass,
+                                tabPage.ChildForm.Joint));
                         }));
                 }
             }
