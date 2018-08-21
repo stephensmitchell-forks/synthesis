@@ -97,7 +97,8 @@ namespace FieldExporter.Components
                 newPage.ChildForm.Collider = p.Collider;
                 newPage.ChildForm.Friction = p.Friction;
                 newPage.ChildForm.Mass = p.Mass;
-                
+                newPage.ChildForm.Joint = p.Joint;
+
                 TabPages.Insert(TabPages.Count - 1, newPage);
             }
 

@@ -90,8 +90,12 @@ namespace FieldExporter.Components
         private void interactionEvents_OnActivate()
         {
             selectEvents = interactionEvents.SelectEvents;
-            selectEvents.AddSelectionFilter(SelectionFilterEnum.kSketchPointFilter);
             selectEvents.OnSelect += selectEvents_OnSelect;
+
+            if (selectingCenter)
+                selectEvents.AddSelectionFilter(SelectionFilterEnum.kWorkPointFilter);
+            else
+                selectEvents.AddSelectionFilter(SelectionFilterEnum.kWorkAxisFilter);
         }
 
         bool selectingCenter = false;
@@ -101,14 +105,15 @@ namespace FieldExporter.Components
         {
             foreach (dynamic selectedEntity in justSelectedEntities)
             {
-                if (selectingCenter && selectedEntity is SketchPoint point)
+                if (selectingCenter && selectedEntity is WorkPoint point)
                 {
-                    Center = new BXDVector3(point.Geometry3d.X, point.Geometry3d.Y, point.Geometry3d.Z);
+                    Center = new BXDVector3(point.Point.X, point.Point.Y, point.Point.Z);
                     DisableInteractionEvents();
                     break;
                 }
-                else
+                else if (selectingAxis && selectedEntity is WorkAxis axis)
                 {
+                    Axis = new BXDVector3(axis.Line.Direction.X, axis.Line.Direction.Y, axis.Line.Direction.Z);
                     DisableInteractionEvents();
                     break;
                 }

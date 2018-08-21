@@ -30,6 +30,9 @@ namespace FieldExporter.Controls
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            BXDVector3 bxdVector31 = new BXDVector3();
+            BXDVector3 bxdVector32 = new BXDVector3();
+            BXDVector3 bxdVector33 = new BXDVector3();
             this.inventorSelectButton = new System.Windows.Forms.Button();
             this.addSelectionButton = new System.Windows.Forms.Button();
             this.inventorActionsPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -45,6 +48,7 @@ namespace FieldExporter.Controls
             this.massLabel = new System.Windows.Forms.Label();
             this.massNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.gamepieceProperties = new FieldExporter.Components.GamepiecePropertiesForm();
+            this.jointProperties = new FieldExporter.Components.JointPropertiesForm();
             this.dynamicCheckBox = new System.Windows.Forms.CheckBox();
             this.frictionTrackBar = new System.Windows.Forms.TrackBar();
             this.meshPropertiesGroupBox = new System.Windows.Forms.GroupBox();
@@ -60,7 +64,6 @@ namespace FieldExporter.Controls
             this.propertiesScrollablePanel = new System.Windows.Forms.Panel();
             this.selectionLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
             this.inventorTreeView = new FieldExporter.Components.InventorTreeView(this.components);
-            this.jointProperties = new FieldExporter.Components.JointPropertiesForm();
             this.inventorActionsPanel.SuspendLayout();
             this.physicalPropertiesGroupBox.SuspendLayout();
             this.physicalLayoutPanel.SuspendLayout();
@@ -129,7 +132,7 @@ namespace FieldExporter.Controls
             this.physicalPropertiesGroupBox.Dock = System.Windows.Forms.DockStyle.Top;
             this.physicalPropertiesGroupBox.Location = new System.Drawing.Point(3, 109);
             this.physicalPropertiesGroupBox.Name = "physicalPropertiesGroupBox";
-            this.physicalPropertiesGroupBox.Size = new System.Drawing.Size(270, 262);
+            this.physicalPropertiesGroupBox.Size = new System.Drawing.Size(270, 302);
             this.physicalPropertiesGroupBox.TabIndex = 15;
             this.physicalPropertiesGroupBox.TabStop = false;
             this.physicalPropertiesGroupBox.Text = "Physical Properties";
@@ -152,7 +155,7 @@ namespace FieldExporter.Controls
             this.physicalLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.physicalLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.physicalLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.physicalLayoutPanel.Size = new System.Drawing.Size(264, 243);
+            this.physicalLayoutPanel.Size = new System.Drawing.Size(264, 283);
             this.physicalLayoutPanel.TabIndex = 11;
             // 
             // frictionLabel
@@ -226,7 +229,7 @@ namespace FieldExporter.Controls
             this.dynamicGroupBox.Controls.Add(this.dynamicCheckBox);
             this.dynamicGroupBox.Location = new System.Drawing.Point(3, 70);
             this.dynamicGroupBox.Name = "dynamicGroupBox";
-            this.dynamicGroupBox.Size = new System.Drawing.Size(258, 170);
+            this.dynamicGroupBox.Size = new System.Drawing.Size(258, 210);
             this.dynamicGroupBox.TabIndex = 9;
             this.dynamicGroupBox.TabStop = false;
             // 
@@ -248,7 +251,7 @@ namespace FieldExporter.Controls
             this.dynamicLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.dynamicLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.dynamicLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.dynamicLayoutPanel.Size = new System.Drawing.Size(252, 151);
+            this.dynamicLayoutPanel.Size = new System.Drawing.Size(252, 191);
             this.dynamicLayoutPanel.TabIndex = 11;
             // 
             // massLabel
@@ -288,8 +291,24 @@ namespace FieldExporter.Controls
             this.gamepieceProperties.Location = new System.Drawing.Point(3, 29);
             this.gamepieceProperties.MinimumSize = new System.Drawing.Size(1, 0);
             this.gamepieceProperties.Name = "gamepieceProperties";
-            this.gamepieceProperties.Size = new System.Drawing.Size(229, 76);
+            this.gamepieceProperties.Size = new System.Drawing.Size(246, 76);
+            this.gamepieceProperties.Spawnpoint = bxdVector31;
             this.gamepieceProperties.TabIndex = 11;
+            // 
+            // jointProperties
+            // 
+            this.jointProperties.AutoSize = true;
+            this.jointProperties.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.jointProperties.Axis = bxdVector32;
+            this.jointProperties.Center = bxdVector33;
+            this.dynamicLayoutPanel.SetColumnSpan(this.jointProperties, 2);
+            this.jointProperties.Dock = System.Windows.Forms.DockStyle.Top;
+            this.jointProperties.IsJointed = true;
+            this.jointProperties.Location = new System.Drawing.Point(3, 111);
+            this.jointProperties.MinimumSize = new System.Drawing.Size(1, 0);
+            this.jointProperties.Name = "jointProperties";
+            this.jointProperties.Size = new System.Drawing.Size(246, 77);
+            this.jointProperties.TabIndex = 12;
             // 
             // dynamicCheckBox
             // 
@@ -435,8 +454,6 @@ namespace FieldExporter.Controls
             // 
             // propertiesLayoutPanel
             // 
-            this.propertiesLayoutPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.propertiesLayoutPanel.AutoSize = true;
             this.propertiesLayoutPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.propertiesLayoutPanel.ColumnCount = 1;
@@ -444,13 +461,14 @@ namespace FieldExporter.Controls
             this.propertiesLayoutPanel.Controls.Add(this.propertySetOptionsBox, 0, 0);
             this.propertiesLayoutPanel.Controls.Add(this.physicalPropertiesGroupBox, 0, 2);
             this.propertiesLayoutPanel.Controls.Add(this.meshPropertiesGroupBox, 0, 1);
+            this.propertiesLayoutPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.propertiesLayoutPanel.Location = new System.Drawing.Point(0, 0);
             this.propertiesLayoutPanel.Name = "propertiesLayoutPanel";
             this.propertiesLayoutPanel.RowCount = 3;
             this.propertiesLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.propertiesLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.propertiesLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.propertiesLayoutPanel.Size = new System.Drawing.Size(276, 374);
+            this.propertiesLayoutPanel.Size = new System.Drawing.Size(276, 414);
             this.propertiesLayoutPanel.TabIndex = 18;
             // 
             // propertiesScrollablePanel
@@ -488,16 +506,6 @@ namespace FieldExporter.Controls
             this.inventorTreeView.Name = "inventorTreeView";
             this.inventorTreeView.Size = new System.Drawing.Size(298, 365);
             this.inventorTreeView.TabIndex = 12;
-            // 
-            // jointProperties
-            // 
-            this.dynamicLayoutPanel.SetColumnSpan(this.jointProperties, 2);
-            this.jointProperties.Dock = System.Windows.Forms.DockStyle.Top;
-            this.jointProperties.Location = new System.Drawing.Point(3, 111);
-            this.jointProperties.MinimumSize = new System.Drawing.Size(1, 0);
-            this.jointProperties.Name = "jointProperties";
-            this.jointProperties.Size = new System.Drawing.Size(229, 150);
-            this.jointProperties.TabIndex = 12;
             // 
             // ComponentPropertiesForm
             // 
