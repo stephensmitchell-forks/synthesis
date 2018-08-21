@@ -43,7 +43,7 @@ public partial class BXDFProperties
         <xs:attribute name='Version'>
             <xs:simpleType>
                 <xs:restriction base='xs:string'>
-                    <xs:pattern value='2\.2\.\d+'/>
+                    <xs:pattern value='2\.3\.\d+'/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>

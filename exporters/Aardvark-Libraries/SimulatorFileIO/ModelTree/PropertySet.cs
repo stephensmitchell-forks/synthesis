@@ -111,6 +111,11 @@ public struct PropertySet
         }
     }
 
+    /// <summary>
+    /// A joint between two parts in a property set.
+    /// Theoretically, this would joint to upper-most two parts in the heirarchy,
+    /// merging all of the others into their parents.
+    /// </summary>
     public class FieldJoint
     {
         /// <summary>
