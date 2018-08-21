@@ -128,6 +128,12 @@
     <Compile Include="Components\GamepiecePropertiesForm.Designer.cs">
       <DependentUpon>GamepiecePropertiesForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Components\JointPropertiesForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\JointPropertiesForm.Designer.cs">
+      <DependentUpon>JointPropertiesForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Exporter\FieldProperties.cs" />
     <Compile Include="Exporter\Gamepiece.cs" />
     <Compile Include="Components\ExportForm.cs">
@@ -257,6 +263,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Components\InventorTreeView.resx">
       <DependentUpon>InventorTreeView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\JointPropertiesForm.resx">
+      <DependentUpon>JointPropertiesForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Components\MeshColliderPropertiesForm.resx">
       <DependentUpon>MeshColliderPropertiesForm.cs</DependentUpon>
