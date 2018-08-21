@@ -133,23 +133,8 @@ namespace FieldExporter.Controls
         /// </summary>
         public PropertySet.FieldJoint Joint
         {
-            get => null;
-            //set
-            //{
-            //    decimal dec = (decimal)value;
-
-            //    if (dec > massNumericUpDown.Maximum)
-            //        dec = massNumericUpDown.Maximum;
-            //    else if (dec < massNumericUpDown.Minimum)
-            //        dec = massNumericUpDown.Minimum;
-
-            //    massNumericUpDown.Value = dec;
-
-            //    if (value == 0)
-            //        dynamicCheckBox.Checked = false;
-            //    else
-            //        dynamicCheckBox.Checked = true;
-            //}
+            get => jointProperties.Joint;
+            set => jointProperties.Joint = value;
         }
 
         /// <summary>
@@ -391,12 +376,15 @@ namespace FieldExporter.Controls
             {
                 massNumericUpDown.Enabled = true;
                 gamepieceProperties.Enabled = true;
+                jointProperties.Enabled = true;
             }
             else
             {
                 massNumericUpDown.Enabled = false;
                 gamepieceProperties.IsGamepiece = false;
                 gamepieceProperties.Enabled = false;
+                jointProperties.IsJointed = false;
+                jointProperties.Enabled = false;
                 massNumericUpDown.Value = 0;
             }
         }

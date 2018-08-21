@@ -30,11 +30,11 @@
         {
             this.gamepieceGroupbox = new System.Windows.Forms.GroupBox();
             this.gamepieceLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.selectAxisButton = new System.Windows.Forms.Button();
+            this.axisLabel = new System.Windows.Forms.Label();
             this.centerLabel = new System.Windows.Forms.Label();
             this.selectCenterButton = new System.Windows.Forms.Button();
             this.jointCheckBox = new System.Windows.Forms.CheckBox();
-            this.axisLabel = new System.Windows.Forms.Label();
-            this.selectAxisButton = new System.Windows.Forms.Button();
             this.gamepieceGroupbox.SuspendLayout();
             this.gamepieceLayoutPanel.SuspendLayout();
             this.SuspendLayout();
@@ -72,6 +72,30 @@
             this.gamepieceLayoutPanel.Size = new System.Drawing.Size(244, 58);
             this.gamepieceLayoutPanel.TabIndex = 1;
             // 
+            // selectAxisButton
+            // 
+            this.selectAxisButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.selectAxisButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.selectAxisButton.Location = new System.Drawing.Point(179, 32);
+            this.selectAxisButton.Name = "selectAxisButton";
+            this.selectAxisButton.Size = new System.Drawing.Size(62, 23);
+            this.selectAxisButton.TabIndex = 5;
+            this.selectAxisButton.Text = "Select";
+            this.selectAxisButton.UseVisualStyleBackColor = true;
+            this.selectAxisButton.Click += new System.EventHandler(this.selectAxisButton_Click);
+            // 
+            // axisLabel
+            // 
+            this.axisLabel.AutoSize = true;
+            this.axisLabel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.axisLabel.Location = new System.Drawing.Point(3, 32);
+            this.axisLabel.Margin = new System.Windows.Forms.Padding(3);
+            this.axisLabel.Name = "axisLabel";
+            this.axisLabel.Size = new System.Drawing.Size(95, 23);
+            this.axisLabel.TabIndex = 4;
+            this.axisLabel.Text = "Axis: [0.0, 0.0, 0.0]";
+            this.axisLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // centerLabel
             // 
             this.centerLabel.AutoSize = true;
@@ -94,6 +118,7 @@
             this.selectCenterButton.TabIndex = 0;
             this.selectCenterButton.Text = "Select";
             this.selectCenterButton.UseVisualStyleBackColor = true;
+            this.selectCenterButton.Click += new System.EventHandler(this.selectCenterButton_Click);
             // 
             // jointCheckBox
             // 
@@ -106,29 +131,7 @@
             this.jointCheckBox.TabIndex = 0;
             this.jointCheckBox.Text = "Jointed";
             this.jointCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // axisLabel
-            // 
-            this.axisLabel.AutoSize = true;
-            this.axisLabel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.axisLabel.Location = new System.Drawing.Point(3, 32);
-            this.axisLabel.Margin = new System.Windows.Forms.Padding(3);
-            this.axisLabel.Name = "axisLabel";
-            this.axisLabel.Size = new System.Drawing.Size(95, 23);
-            this.axisLabel.TabIndex = 4;
-            this.axisLabel.Text = "Axis: [0.0, 0.0, 0.0]";
-            this.axisLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // selectAxisButton
-            // 
-            this.selectAxisButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.selectAxisButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.selectAxisButton.Location = new System.Drawing.Point(179, 32);
-            this.selectAxisButton.Name = "selectAxisButton";
-            this.selectAxisButton.Size = new System.Drawing.Size(62, 23);
-            this.selectAxisButton.TabIndex = 5;
-            this.selectAxisButton.Text = "Select";
-            this.selectAxisButton.UseVisualStyleBackColor = true;
+            this.jointCheckBox.CheckedChanged += new System.EventHandler(this.jointCheckBox_CheckedChanged);
             // 
             // JointPropertiesForm
             // 

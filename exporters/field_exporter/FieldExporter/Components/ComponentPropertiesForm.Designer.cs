@@ -240,6 +240,7 @@ namespace FieldExporter.Controls
             this.dynamicLayoutPanel.Controls.Add(this.massLabel, 0, 0);
             this.dynamicLayoutPanel.Controls.Add(this.massNumericUpDown, 1, 0);
             this.dynamicLayoutPanel.Controls.Add(this.gamepieceProperties, 0, 1);
+            this.dynamicLayoutPanel.Controls.Add(this.jointProperties, 0, 2);
             this.dynamicLayoutPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.dynamicLayoutPanel.Location = new System.Drawing.Point(3, 16);
             this.dynamicLayoutPanel.Name = "dynamicLayoutPanel";
@@ -288,7 +289,6 @@ namespace FieldExporter.Controls
             this.gamepieceProperties.MinimumSize = new System.Drawing.Size(1, 0);
             this.gamepieceProperties.Name = "gamepieceProperties";
             this.gamepieceProperties.Size = new System.Drawing.Size(229, 76);
-            this.gamepieceProperties.Spawnpoint = bxdVector31;
             this.gamepieceProperties.TabIndex = 11;
             // 
             // dynamicCheckBox
