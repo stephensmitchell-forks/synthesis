@@ -6,7 +6,7 @@ public partial class BXDFProperties
     /// <summary>
     /// Represents the current version of the BXDF file.
     /// </summary>
-    public const string BXDF_CURRENT_VERSION = "2.2.0";
+    public const string BXDF_CURRENT_VERSION = "2.3.0";
 
     /// <summary>
     /// Represents the default name of any element.
@@ -99,6 +99,10 @@ public partial class BXDFProperties
 
             // Writes the mass property for the PropertySet.
             writer.WriteElementString("Mass", propertySet.Mass.ToString("F4"));
+
+            // Writes the joint property for the PropertySet.
+            if (propertySet.Joint != null)
+                WriteFieldJoint(writer, propertySet.Joint);
 
             // Ends the element.
             writer.WriteEndElement();
@@ -213,6 +217,21 @@ public partial class BXDFProperties
                 WriteMeshCollider(writer, (PropertySet.MeshCollider)propertySetCollider);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Writes the given PropertySet's collider to an XML file with the given XmlWriter.
+    /// </summary>
+    /// <param name="writer"></param>
+    /// <param name="propertySetCollider"></param>
+    private static void WriteFieldJoint(XmlWriter writer, PropertySet.FieldJoint fieldJoint)
+    {
+        writer.WriteStartElement("Joint");
+
+        WriteBXDVector3(writer, fieldJoint.Center, "Center");
+        WriteBXDVector3(writer, fieldJoint.Axis, "Axis");
+
+        writer.WriteEndElement();
     }
 
     /// <summary>
