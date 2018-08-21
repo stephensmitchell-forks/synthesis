@@ -43,9 +43,11 @@ public partial class BXDFProperties
             {
                 case "2.2":
                     return ReadProperties_2_2(path, out result);
+                case "2.3":
+                    return ReadProperties_2_3(path, out result);
                 default: // If version is unknown.
                     // Attempt to read with the most recent version (but without validation).
-                    return ReadProperties_2_2(path, out result, false);
+                    return ReadProperties_2_3(path, out result, false);
             }
         }
         else

@@ -111,6 +111,35 @@ public struct PropertySet
         }
     }
 
+    public class FieldJoint
+    {
+        /// <summary>
+        /// The center point of the field joint.
+        /// </summary>
+        public BXDVector3 Center
+        {
+            get;
+            private set;
+        }
+        /// <summary>
+        /// The axis of rotation of the field joint.
+        /// </summary>
+        public BXDVector3 Axis
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the FieldJoint class.
+        /// </summary>
+        public FieldJoint(BXDVector3 center, BXDVector3 axis)
+        {
+            Center = center;
+            Axis = axis;
+        }
+    }
+
     /// <summary>
     /// ID of the PropertySet.
     /// </summary>
@@ -132,16 +161,22 @@ public struct PropertySet
     public float Mass;
 
     /// <summary>
+    /// Stores the joint that exists between members of the object.
+    /// </summary>
+    public FieldJoint Joint;
+
+    /// <summary>
     /// Constructs a new PhysicsGroup with the specified values.
     /// </summary>
     /// <param name="ID"></param>
     /// <param name="type"></param>
     /// <param name="frictionValue"></param>
-    public PropertySet(string physicsGroupID, PropertySetCollider collider, int friction, float mass = 0.0f)
+    public PropertySet(string physicsGroupID, PropertySetCollider collider, int friction, float mass = 0.0f, FieldJoint joint = null)
     {
         PropertySetID = physicsGroupID;
         Collider = collider;
         Friction = friction;
         Mass = mass;
+        Joint = joint;
     }
 }
