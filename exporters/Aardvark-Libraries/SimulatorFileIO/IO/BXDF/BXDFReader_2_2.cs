@@ -364,6 +364,7 @@ public partial class BXDFProperties
     {
         // Creates a new PropertySet.
         PropertySet propertySet = new PropertySet();
+        propertySet.Separated = true;
 
         foreach (string name in IOUtilities.AllElements(reader))
         {

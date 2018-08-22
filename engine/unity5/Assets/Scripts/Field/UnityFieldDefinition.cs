@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using BulletUnity;
+using Synthesis.FEA;
+using Synthesis.NetworkMultiplayer;
+using Synthesis.Utils;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using BulletUnity;
-using BulletSharp;
-using Synthesis.FEA;
-using Synthesis.Utils;
-using Synthesis.NetworkMultiplayer;
 using UnityEngine.Networking;
 
 namespace Synthesis.Field
@@ -40,6 +38,7 @@ namespace Synthesis.Field
 
             List<KeyValuePair<BXDAMesh.BXDASubMesh, Mesh>> submeshes = new List<KeyValuePair<BXDAMesh.BXDASubMesh, Mesh>>();
             List<KeyValuePair<BXDAMesh.BXDASubMesh, Mesh>> colliders = new List<KeyValuePair<BXDAMesh.BXDASubMesh, Mesh>>();
+            Dictionary<string, GameObject> joinedPropertySets = new Dictionary<string, GameObject>();
 
             // Create all submesh objects
             Auxiliary.ReadMeshSet(mesh.meshes, delegate (int id, BXDAMesh.BXDASubMesh sub, Mesh meshu)
@@ -122,89 +121,89 @@ namespace Synthesis.Field
                 if (GetPropertySets().ContainsKey(node.PropertySetID))
                 {
                     PropertySet currentPropertySet = GetPropertySets()[node.PropertySetID];
-                    PropertySet.PropertySetCollider psCollider = currentPropertySet.Collider;
 
-                    switch (psCollider.CollisionType)
+                    BCollisionShape collider = CreateCollider(currentPropertySet.Collider, meshObject, subObject);
+
+                    // Give this subobject a collider if the property set specifies that members should be separated.
+                    if (currentPropertySet.Separated)
                     {
-                        case PropertySet.PropertySetCollider.PropertySetCollisionType.BOX:
-                            PropertySet.BoxCollider psBoxCollider = (PropertySet.BoxCollider)psCollider;
-                            BoxCollider dummyBoxCollider = meshObject.AddComponent<BoxCollider>();
+                        BRigidBody rb = subObject.AddComponent<BRigidBody>();
+                        rb.friction = currentPropertySet.Friction * FrictionScale;
+                        rb.rollingFriction = currentPropertySet.Friction * RollingFrictionScale;
+                        rb.mass = currentPropertySet.Mass;
 
-                            subObject.transform.localRotation = meshObject.transform.localRotation;
-                            subObject.transform.position = meshObject.transform.TransformPoint(dummyBoxCollider.center);
+                        if (currentPropertySet.Mass == 0)
+                            rb.collisionFlags = BulletSharp.CollisionFlags.StaticObject;
+                        else
+                        {
+                            subObject.AddComponent<Tracker>();
+                            subObject.name = currentPropertySet.PropertySetID;
+                        }
+                    }
+                    // Give property set a this object's collider if not separated.
+                    else
+                    {
+                        GameObject propObject;
 
-                            BBoxShape boxShape = subObject.AddComponent<BBoxShape>();
-                            boxShape.Extents = new Vector3(
-                                dummyBoxCollider.size.x * 0.5f * psBoxCollider.Scale.x,
-                                dummyBoxCollider.size.y * 0.5f * psBoxCollider.Scale.y,
-                                dummyBoxCollider.size.z * 0.5f * psBoxCollider.Scale.z);
-
-                            //meshObject.AddComponent<MouseListener>();
-                            UnityEngine.Object.Destroy(dummyBoxCollider);
-
-                            break;
-                        case PropertySet.PropertySetCollider.PropertySetCollisionType.SPHERE:
-                            PropertySet.SphereCollider psSphereCollider = (PropertySet.SphereCollider)psCollider;
-                            SphereCollider dummySphereCollider = meshObject.AddComponent<SphereCollider>();
-
-                            subObject.transform.position = meshObject.transform.TransformPoint(dummySphereCollider.center);
-
-                            BSphereShape sphereShape = subObject.AddComponent<BSphereShape>();
-                            sphereShape.Radius = dummySphereCollider.radius * psSphereCollider.Scale;
-
-                            //meshObject.AddComponent<MouseListener>();
-                            UnityEngine.Object.Destroy(dummySphereCollider);
-
-                            break;
-                        case PropertySet.PropertySetCollider.PropertySetCollisionType.MESH:
-                            PropertySet.MeshCollider psMeshCollider = (PropertySet.MeshCollider)psCollider;
-
-                            if (psMeshCollider.Convex || currentPropertySet.Mass != 0)
+                        // Get existing property set parent if it has been created
+                        if (joinedPropertySets.ContainsKey(currentPropertySet.PropertySetID))
+                        {
+                            propObject = joinedPropertySets[currentPropertySet.PropertySetID];
+                        }
+                        else
+                        {
+                            if (multiplayer && currentPropertySet.Mass != 0)
                             {
-                                MeshCollider dummyMeshCollider = subObject.AddComponent<MeshCollider>();
-                                dummyMeshCollider.sharedMesh = meshObject.GetComponent<MeshFilter>().mesh;
-
-                                subObject.transform.position = meshObject.transform.TransformPoint(dummyMeshCollider.bounds.center);
-                                subObject.transform.rotation = meshObject.transform.rotation;
-
-                                BConvexHullShape hullshape = subObject.AddComponent<BConvexHullShape>();
-                                hullshape.HullMesh = Auxiliary.GenerateCollisionMesh(meshObject.GetComponent<MeshFilter>().mesh, dummyMeshCollider.sharedMesh.bounds.center, 0f/*CollisionMargin*/);
-                                hullshape.GetCollisionShape().Margin = CollisionMargin;
-
-                                //subObject.AddComponent<MouseListener>();
-                                UnityEngine.Object.Destroy(dummyMeshCollider);
+                                if (host)
+                                {
+                                    propObject = (GameObject)UnityEngine.Object.Instantiate(Resources.Load("prefabs/NetworkElement"), unityObject.transform);
+                                    propObject.GetComponent<NetworkElement>().NodeID = currentPropertySet.PropertySetID;
+                                    propObject.name = currentPropertySet.PropertySetID;
+                                    NetworkServer.Spawn(propObject);
+                                }
+                                else
+                                {
+                                    propObject = networkElements[currentPropertySet.PropertySetID].gameObject;
+                                    propObject.name = currentPropertySet.PropertySetID;
+                                }
                             }
                             else
                             {
-                                subObject.transform.position = meshObject.transform.position;
-                                subObject.transform.rotation = meshObject.transform.rotation;
-
-                                BBvhTriangleMeshShape meshShape = subObject.AddComponent<BBvhTriangleMeshShape>();
-                                meshShape.HullMesh = meshObject.GetComponent<MeshFilter>().mesh.GetScaledCopy(-1f, 1f, 1f);
-                                meshShape.GetCollisionShape().Margin = CollisionMargin;
+                                propObject = new GameObject(currentPropertySet.PropertySetID);
+                                propObject.transform.parent = unityObject.transform;
                             }
-                            break;
+
+                            // Create multi-collider for property set
+                            propObject.AddComponent<BUExtensions.BMultiShape>();
+
+                            // Create rigidbody for property set
+                            BRigidBody rb = propObject.AddComponent<BRigidBody>();
+                            rb.friction = currentPropertySet.Friction * FrictionScale;
+                            rb.rollingFriction = currentPropertySet.Friction * RollingFrictionScale;
+                            rb.mass = currentPropertySet.Mass;
+
+                            if (currentPropertySet.Mass == 0)
+                                rb.collisionFlags = BulletSharp.CollisionFlags.StaticObject;
+                            else
+                                propObject.AddComponent<Tracker>();
+
+                            joinedPropertySets[currentPropertySet.PropertySetID] = propObject;
+                        }
+
+                        subObject.transform.parent = propObject.transform;
+
+                        // Create offset based on the subObject's local transform
+                        BulletSharp.Math.Quaternion bRot = subObject.transform.localRotation.ToBullet();
+                        BulletSharp.Math.Vector3 bPos = subObject.transform.localPosition.ToBullet();
+                        BulletSharp.Math.Matrix offset;
+                        BulletSharp.Math.Matrix.AffineTransformation(1.0f, ref bRot, ref bPos, out offset);
+
+                        propObject.GetComponent<BUExtensions.BMultiShape>().AddShape(collider.CopyCollisionShape(), offset);
+                        GameObject.DestroyImmediate(collider);
                     }
-
-                    BRigidBody rb = subObject.AddComponent<BRigidBody>();
-                    rb.friction = currentPropertySet.Friction * FrictionScale;
-                    rb.rollingFriction = currentPropertySet.Friction * RollingFrictionScale;
-                    rb.mass = currentPropertySet.Mass;
-
-                    if (currentPropertySet.Mass == 0)
-                        rb.collisionFlags = BulletSharp.CollisionFlags.StaticObject;
-                    else
-                    {
-                        subObject.AddComponent<Tracker>();
-                        subObject.name = currentPropertySet.PropertySetID;
-                    }
-
-                    meshObject.transform.parent = subObject.transform;
                 }
-                else
-                {
-                    meshObject.transform.parent = unityObject.transform;
-                }
+
+                meshObject.transform.parent = subObject.transform;
             }
 
             #region Free mesh
@@ -229,6 +228,78 @@ namespace Synthesis.Field
             #endregion
 
             return true;
+        }
+
+        BCollisionShape CreateCollider(PropertySet.PropertySetCollider psCollider, GameObject meshObject, GameObject colliderObject)
+        {
+            switch (psCollider.CollisionType)
+            {
+                case PropertySet.PropertySetCollider.PropertySetCollisionType.BOX:
+                    PropertySet.BoxCollider psBoxCollider = (PropertySet.BoxCollider)psCollider;
+                    BoxCollider dummyBoxCollider = meshObject.AddComponent<BoxCollider>();
+
+                    colliderObject.transform.localRotation = meshObject.transform.localRotation;
+                    colliderObject.transform.position = meshObject.transform.TransformPoint(dummyBoxCollider.center);
+
+                    BBoxShape boxShape = colliderObject.AddComponent<BBoxShape>();
+                    boxShape.Extents = new Vector3(
+                        dummyBoxCollider.size.x * 0.5f * psBoxCollider.Scale.x,
+                        dummyBoxCollider.size.y * 0.5f * psBoxCollider.Scale.y,
+                        dummyBoxCollider.size.z * 0.5f * psBoxCollider.Scale.z);
+
+                    //meshObject.AddComponent<MouseListener>();
+                    UnityEngine.Object.Destroy(dummyBoxCollider);
+
+                    return boxShape;
+
+                case PropertySet.PropertySetCollider.PropertySetCollisionType.SPHERE:
+                    PropertySet.SphereCollider psSphereCollider = (PropertySet.SphereCollider)psCollider;
+                    SphereCollider dummySphereCollider = meshObject.AddComponent<SphereCollider>();
+
+                    colliderObject.transform.position = meshObject.transform.TransformPoint(dummySphereCollider.center);
+
+                    BSphereShape sphereShape = colliderObject.AddComponent<BSphereShape>();
+                    sphereShape.Radius = dummySphereCollider.radius * psSphereCollider.Scale;
+
+                    //meshObject.AddComponent<MouseListener>();
+                    UnityEngine.Object.Destroy(dummySphereCollider);
+
+                    return sphereShape;
+
+                case PropertySet.PropertySetCollider.PropertySetCollisionType.MESH:
+                    PropertySet.MeshCollider psMeshCollider = (PropertySet.MeshCollider)psCollider;
+
+                    if (psMeshCollider.Convex)
+                    {
+                        MeshCollider dummyMeshCollider = colliderObject.AddComponent<MeshCollider>();
+                        dummyMeshCollider.sharedMesh = meshObject.GetComponent<MeshFilter>().mesh;
+
+                        colliderObject.transform.position = meshObject.transform.TransformPoint(dummyMeshCollider.bounds.center);
+                        colliderObject.transform.rotation = meshObject.transform.rotation;
+
+                        BConvexHullShape hullshape = colliderObject.AddComponent<BConvexHullShape>();
+                        hullshape.HullMesh = Auxiliary.GenerateCollisionMesh(meshObject.GetComponent<MeshFilter>().mesh, Vector3.zero, 0f/*CollisionMargin*/);
+                        hullshape.GetCollisionShape().Margin = CollisionMargin;
+
+                        //subObject.AddComponent<MouseListener>();
+                        UnityEngine.Object.Destroy(dummyMeshCollider);
+
+                        return hullshape;
+                    }
+                    else
+                    {
+                        colliderObject.transform.position = meshObject.transform.position;
+                        colliderObject.transform.rotation = meshObject.transform.rotation;
+
+                        BBvhTriangleMeshShape meshShape = colliderObject.AddComponent<BBvhTriangleMeshShape>();
+                        meshShape.HullMesh = meshObject.GetComponent<MeshFilter>().mesh.GetScaledCopy(-1f, 1f, 1f);
+                        meshShape.GetCollisionShape().Margin = CollisionMargin;
+
+                        return meshShape;
+                    }
+            }
+
+            return null;
         }
     }
 }

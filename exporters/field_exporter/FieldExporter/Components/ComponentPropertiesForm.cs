@@ -83,7 +83,7 @@ namespace FieldExporter.Controls
         /// </summary>
         public bool Separated
         {
-            get => true;
+            get => Mass != 0.0f && Gamepiece != null;
             set { }
         }
 

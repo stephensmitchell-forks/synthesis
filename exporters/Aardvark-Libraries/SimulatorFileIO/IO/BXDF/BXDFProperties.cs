@@ -94,6 +94,9 @@ public partial class BXDFProperties
             // Writes the collider property for the PropertySet.
             WriteCollider(writer, propertySet.Collider);
 
+            // Writes the separated property for the PropertySet.
+            writer.WriteElementString("Separated", propertySet.Separated.ToString().ToLower());
+
             // Writes the friction property for the PropertySet.
             writer.WriteElementString("Friction", propertySet.Friction.ToString());
 
