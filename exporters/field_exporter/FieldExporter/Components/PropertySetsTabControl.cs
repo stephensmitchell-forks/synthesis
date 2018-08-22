@@ -186,21 +186,12 @@ namespace FieldExporter.Components
         /// <returns></returns>
         public bool NodeExists(string key, params ComponentPropertiesTabPage[] excludedPages)
         {
-            foreach (TabPage t in TabPages)
-            {
-                if (t is ComponentPropertiesTabPage)
-                {
-                    ComponentPropertiesTabPage tabPage = (ComponentPropertiesTabPage)t;
-                    if (!excludedPages.Contains<ComponentPropertiesTabPage>(tabPage))
-                    {
-                        if (tabPage.ChildForm.inventorTreeView.Nodes.Find(key, true).Length > 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            ComponentPropertiesTabPage parent = GetParentTabPage(key);
+
+            if (parent == null || excludedPages.Contains(parent))
+                return false;
+            else
+                return false;
         }
 
         /// <summary>
@@ -212,15 +203,49 @@ namespace FieldExporter.Components
         {
             foreach (TabPage t in TabPages)
             {
-                if (t is ComponentPropertiesTabPage)
+                if (t is ComponentPropertiesTabPage tabPage)
                 {
-                    ComponentPropertiesTabPage tabPage = (ComponentPropertiesTabPage)t;
-                    if (tabPage.ChildForm.inventorTreeView.Nodes.Find(key, true).Length > 0)
+                    string tempKey = key;
+                    int index = -1;
+                    do
                     {
-                        return tabPage;
+                        tempKey = tempKey.Substring(index + 1);
+
+                        if (SearchNodes(tabPage.ChildForm.inventorTreeView.Nodes, tempKey) != null)
+                            return tabPage;
+                        else
+                            index = tempKey.IndexOf("\\");
                     }
+                    while (index != -1);
                 }
             }
+            return null;
+        }
+
+        /// <summary>
+        /// Searches for a matching node in at a specific path in a node tree.
+        /// </summary>
+        /// <param name="nodes">Node collection to search.</param>
+        /// <param name="key">Path of node to search for.</param>
+        /// <returns></returns>
+        private TreeNode SearchNodes(TreeNodeCollection nodes, string key)
+        {
+            int index = key.IndexOf("\\");
+
+            string nextKey = key.Substring(0, index > -1 ? index : key.Length);
+            string nextSearch = key.Substring(index + 1);
+
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Name == nextKey)
+                {
+                    if (index == -1)
+                        return node;
+                    else
+                        return SearchNodes(node.Nodes, nextSearch);
+                }
+            }
+
             return null;
         }
 
@@ -233,17 +258,25 @@ namespace FieldExporter.Components
         {
             foreach (TabPage t in TabPages)
             {
-                if (t is ComponentPropertiesTabPage)
+                if (t is ComponentPropertiesTabPage tabPage)
                 {
-                    ComponentPropertiesTabPage tabPage = (ComponentPropertiesTabPage)t;
-                    if (!excludedPages.Contains<ComponentPropertiesTabPage>(tabPage))
+                    string tempKey = key;
+                    int index = 0;
+                    do
                     {
-                        TreeNode[] nodeCollection = tabPage.ChildForm.inventorTreeView.Nodes.Find(key, true);
-                        for (int i = 0; i < nodeCollection.Length; i++)
+                        tempKey = tempKey.Substring(index + 1);
+
+                        TreeNode node = SearchNodes(tabPage.ChildForm.inventorTreeView.Nodes, tempKey);
+
+                        if (node != null)
                         {
-                            nodeCollection[i].Remove();
+                            node.Remove();
+                            return;
                         }
+                        else
+                            index = tempKey.IndexOf("\\");
                     }
+                    while (index != -1);
                 }
             }
         }

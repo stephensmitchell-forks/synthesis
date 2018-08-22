@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 using Inventor;
+using FieldExporter.Extensions;
 
 namespace FieldExporter.Components
 {
@@ -147,7 +148,7 @@ namespace FieldExporter.Components
 
                     outputNode.SubMeshID = exportedMeshes.IndexOf(currentOccurrence.ReferencedDocumentDescriptor.FullDocumentName);
 
-                    ComponentPropertiesTabPage componentProperties = Program.MAINWINDOW.GetPropertySetsTabControl().GetParentTabPage(currentOccurrence.Name);
+                    ComponentPropertiesTabPage componentProperties = Program.MAINWINDOW.GetPropertySetsTabControl().GetParentTabPage(currentOccurrence.GetFullPath());
 
                     if (componentProperties != null)
                     {

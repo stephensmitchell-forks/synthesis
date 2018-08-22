@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Inventor;
 using FieldExporter.Components;
 using FieldExporter.Forms;
+using FieldExporter.Extensions;
 
 namespace FieldExporter.Controls
 {
@@ -271,7 +272,7 @@ namespace FieldExporter.Controls
 
             for (int i = 0; i < SelectEvents.SelectedEntities.Count; i++)
             {
-                if (ParentTabPage.parentControl.NodeExists(SelectEvents.SelectedEntities[i + 1].Name, ParentTabPage))
+                if (ParentTabPage.parentControl.NodeExists(SelectEvents.SelectedEntities[i + 1].GetFullPath(), ParentTabPage))
                 {
                     switch (permanentChoice)
                     {
@@ -284,7 +285,7 @@ namespace FieldExporter.Controls
 
                             if (result == DialogResult.OK)
                             {
-                                ParentTabPage.parentControl.RemoveNode(SelectEvents.SelectedEntities[i + 1].Name, ParentTabPage);
+                                ParentTabPage.parentControl.RemoveNode(SelectEvents.SelectedEntities[i + 1].GetFullPath(), ParentTabPage);
                                 inventorTreeView.AddComponent(SelectEvents.SelectedEntities[i + 1]);
                             }
 
@@ -294,7 +295,7 @@ namespace FieldExporter.Controls
                             }
                             break;
                         case DialogResult.OK:
-                            ParentTabPage.parentControl.RemoveNode(SelectEvents.SelectedEntities[i + 1].Name, ParentTabPage);
+                            ParentTabPage.parentControl.RemoveNode(SelectEvents.SelectedEntities[i + 1].GetFullPath(), ParentTabPage);
                             inventorTreeView.AddComponent(SelectEvents.SelectedEntities[i + 1]);
                             break;
                     }
