@@ -79,6 +79,15 @@ namespace FieldExporter.Controls
         }
 
         /// <summary>
+        /// The value of the separated checkbox (not implemented, defaults to true).
+        /// </summary>
+        public bool Separated
+        {
+            get => true;
+            set { }
+        }
+
+        /// <summary>
         /// The value of the friction track bar.
         /// </summary>
         public int Friction

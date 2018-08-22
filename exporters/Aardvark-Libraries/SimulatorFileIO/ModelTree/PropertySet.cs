@@ -156,6 +156,11 @@ public struct PropertySet
     public PropertySetCollider Collider;
 
     /// <summary>
+    /// Whether or not all members of the property set will exist as a single rigidbody in Unity.
+    /// </summary>
+    public bool Separated;
+
+    /// <summary>
     /// Friction value of the PhysicsGroup.
     /// </summary>
     public int Friction;
@@ -176,10 +181,11 @@ public struct PropertySet
     /// <param name="ID"></param>
     /// <param name="type"></param>
     /// <param name="frictionValue"></param>
-    public PropertySet(string physicsGroupID, PropertySetCollider collider, int friction, float mass = 0.0f, FieldJoint joint = null)
+    public PropertySet(string physicsGroupID, PropertySetCollider collider, bool separated, int friction, float mass = 0.0f, FieldJoint joint = null)
     {
         PropertySetID = physicsGroupID;
         Collider = collider;
+        Separated = separated;
         Friction = friction;
         Mass = mass;
         Joint = joint;

@@ -72,6 +72,7 @@ namespace FieldExporter.Components
                             translation.Add(new PropertySet(
                                 tabPage.Name,
                                 tabPage.ChildForm.Collider,
+                                tabPage.ChildForm.Separated,
                                 tabPage.ChildForm.Friction,
                                 tabPage.ChildForm.Mass,
                                 tabPage.ChildForm.Joint));

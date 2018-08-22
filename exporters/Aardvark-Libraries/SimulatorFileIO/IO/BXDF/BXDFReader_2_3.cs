@@ -19,6 +19,7 @@ public partial class BXDFProperties
         <xs:element name='Y' type='xs:decimal'/>
         <xs:element name='Z' type='xs:decimal'/>
         <xs:element name='W' type='xs:decimal'/>
+        <xs:element name='Separated' type='xs:boolean'/>
         <xs:element name='Mass' type='xs:decimal'/>
         <xs:element name='SubMeshID' type='xs:integer'/>
         <xs:element name='CollisionMeshID' type='xs:integer'/>
@@ -126,6 +127,7 @@ public partial class BXDFProperties
                         <xs:element ref='SphereCollider'/>
                         <xs:element ref='MeshCollider'/>
                     </xs:choice>
+                    <xs:element ref='Separated'/>
                     <xs:element ref='Friction'/>
                     <xs:element ref='Mass'/>
                     <xs:element ref='Joint' minOccurs='0' maxOccurs='1'/>
@@ -256,6 +258,10 @@ public partial class BXDFProperties
                 case "MeshCollider":
                     // Assigns the MeshCollider read by the XmlReader to the PropertySet's Collider property.
                     propertySet.Collider = ReadMeshCollider_2_2(reader.ReadSubtree());
+                    break;
+                case "Separated":
+                    // Assings the Separated attribute value to the Separated property.
+                    propertySet.Separated = reader.ReadElementContentAsBoolean();
                     break;
                 case "Friction":
                     // Assings the Friction attribute value to the Friction property.
