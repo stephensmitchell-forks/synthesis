@@ -272,37 +272,41 @@ namespace FieldExporter.Controls
 
             for (int i = 0; i < SelectEvents.SelectedEntities.Count; i++)
             {
-                if (ParentTabPage.parentControl.NodeExists(SelectEvents.SelectedEntities[i + 1].GetFullPath(), ParentTabPage))
+                if (SelectEvents.SelectedEntities[i + 1] is ComponentOccurrence occ)
                 {
-                    switch (permanentChoice)
+                    if (ParentTabPage.parentControl.NodeExists(occ.GetFullPath(), ParentTabPage))
                     {
-                        case DialogResult.None:
-                            ConfirmMoveDialog confirmDialog = new ConfirmMoveDialog(
-                                SelectEvents.SelectedEntities[i + 1].Name + " has already been added to another PhysicsGroup. Move " +
-                                SelectEvents.SelectedEntities[i + 1].Name + " to " + ParentTabPage.Name + "?");
+                        switch (permanentChoice)
+                        {
+                            case DialogResult.None:
+                                ConfirmMoveDialog confirmDialog = new ConfirmMoveDialog(
+                                    occ.Name + " has already been added to another PhysicsGroup. Move " +
+                                    occ.Name + " to " + ParentTabPage.Name + "?");
 
-                            DialogResult result = confirmDialog.ShowDialog(Program.MAINWINDOW);
+                                DialogResult result = confirmDialog.ShowDialog(Program.MAINWINDOW);
 
-                            if (result == DialogResult.OK)
-                            {
-                                ParentTabPage.parentControl.RemoveNode(SelectEvents.SelectedEntities[i + 1].GetFullPath(), ParentTabPage);
-                                inventorTreeView.AddComponent(SelectEvents.SelectedEntities[i + 1]);
-                            }
+                                if (result == DialogResult.OK)
+                                {
+                                    ParentTabPage.parentControl.RemoveNode(occ.GetFullPath(), ParentTabPage);
+                                    inventorTreeView.AddComponent(occ);
+                                }
 
-                            if (confirmDialog.IsChecked())
-                            {
-                                permanentChoice = result;
-                            }
-                            break;
-                        case DialogResult.OK:
-                            ParentTabPage.parentControl.RemoveNode(SelectEvents.SelectedEntities[i + 1].GetFullPath(), ParentTabPage);
-                            inventorTreeView.AddComponent(SelectEvents.SelectedEntities[i + 1]);
-                            break;
+                                if (confirmDialog.IsChecked())
+                                {
+                                    permanentChoice = result;
+                                }
+                                break;
+
+                            case DialogResult.OK:
+                                ParentTabPage.parentControl.RemoveNode(occ.GetFullPath(), ParentTabPage);
+                                inventorTreeView.AddComponent(occ);
+                                break;
+                        }
                     }
-                }
-                else
-                {
-                    inventorTreeView.AddComponent(SelectEvents.SelectedEntities[i + 1]);
+                    else
+                    {
+                        inventorTreeView.AddComponent(occ);
+                    }
                 }
             }
 
