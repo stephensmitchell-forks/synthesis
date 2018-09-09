@@ -16,8 +16,8 @@ public class Serialization
     private static Thread receiver;
     private static Process proc;
 
-
     public static bool needsToReconnect { get; set; }
+    public static bool completeDeserialization = false;
 
     public Serialization(string ip = "127.0.0.1", int sendPort = 11000, int receivedPort = 11001)
     {
@@ -26,6 +26,7 @@ public class Serialization
         ProcessStartInfo startinfo = new ProcessStartInfo();
         startinfo.CreateNoWindow = true;
         startinfo.UseShellExecute = false;
+        completeDeserialization = false;
         startinfo.FileName = @"C:\Program Files\qemu\qemu-system-arm.exe";
         startinfo.WindowStyle = ProcessWindowStyle.Hidden;
         startinfo.Arguments = " -machine xilinx-zynq-a9 -cpu cortex-a9 -m 2048 -kernel " + EmulationDriverStation.emulationDir + "zImage" + " -dtb " + EmulationDriverStation.emulationDir + "zynq-zed.dtb" + " -display none -serial null -serial mon:stdio -localtime -append \"console=ttyPS0,115200 earlyprintk root=/dev/mmcblk0 rw\" -redir tcp:10022::22 -redir tcp:11000::11000 -redir tcp:11001::11001 -redir tcp:2354::2354 -sd " + EmulationDriverStation.emulationDir + "rootfs.ext4";
@@ -38,6 +39,7 @@ public class Serialization
     ~Serialization()
     {
         UnityEngine.Debug.Log("Killing Threads");
+        completeDeserialization = false;
         proc.Kill();
         sender.Abort();
         receiver.Abort();
@@ -78,7 +80,7 @@ public class Serialization
                 {
                     UnityEngine.Debug.Log("Connection failed to establish to remote host "+ ip +". " + retries + " retries remaining. Retrying in 5 seconds");
                     System.Threading.Thread.Sleep(5000);
-
+                    completeDeserialization = true;
                 }
                 else
                 {
@@ -132,7 +134,7 @@ public class Serialization
                             {
                                 UnityEngine.Debug.Log("Connection failed to establish to remote host " + ip + ". " + retries + " retries remaining. Retrying in 5 seconds");
                                 System.Threading.Thread.Sleep(5000);
-
+                                completeDeserialization = true;
                             }
                             else
                             {
@@ -185,6 +187,7 @@ public class Serialization
             {
                 OutputManager.Instance = JsonConvert.DeserializeObject<EmuData>(strJSON);
                 strJSON = "";
+                completeDeserialization = true;
                 System.Threading.Thread.Sleep(30);
             }
         }
@@ -214,7 +217,7 @@ public class Serialization
                 {
                     UnityEngine.Debug.Log("Connection failed to establish to remote host " + ip + retries + " retries remaining. Retrying in 5 seconds");
                     System.Threading.Thread.Sleep(5000);
-
+                    completeDeserialization = true;
                 }
                 else
                 {
@@ -268,7 +271,7 @@ public class Serialization
                         {
                             UnityEngine.Debug.Log("Connection failed to establish to remote host " + ip + ". " + retries + " retries remaining. Retrying in 5 seconds");
                             System.Threading.Thread.Sleep(5000);
-
+                            completeDeserialization = true;
                         }
                         else
                         {

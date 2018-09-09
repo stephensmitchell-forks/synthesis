@@ -119,6 +119,7 @@ namespace Synthesis.GUI
             }
             HighlightTabs();
             if (State.isEmulationDownloaded) emulationTab.SetActive(true);
+            if (Serialization.completeDeserialization == true) loadingPanel.SetActive(false);
         }
 
         private void OnGUI()
@@ -239,6 +240,7 @@ namespace Synthesis.GUI
             if (helpMenu.activeSelf) CloseHelpMenu("EmulationToolbar");
             currentTab = "EmulationTab";
             EmulationToolbarState.s = new Serialization();
+            loadingPanel.SetActive(true);
             tabStateMachine.ChangeState(new EmulationToolbarState());
         }
 
