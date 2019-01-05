@@ -31,14 +31,13 @@ namespace Synthesis.States
         /// </summary>
         public override void Start()
         {
-            fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Autodesk\synthesis\Fields"));
+            fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"/Autodesk/synthesis/Fields"));
             mixAndMatchModeScript = Auxiliary.FindGameObject("MixAndMatchModeScript");
             splashScreen = Auxiliary.FindGameObject("LoadSplash");
             fieldList = GameObject.Find("SimLoadFieldList").GetComponent<SelectScrollable>();
 
             fieldList.ThumbTexture = Resources.Load("Images/New Textures/Synthesis_an_Autodesk_Technology_2019_lockup_OL_stacked_no_year") as Texture2D;
             fieldList.ListTextColor = Color.black;
-
         }
 
         /// <summary>
@@ -68,7 +67,7 @@ namespace Synthesis.States
             if (entry != null)
             {
                 string simSelectedFieldName = fieldList.GetComponent<SelectScrollable>().selectedEntry;
-                string simSelectedField = fieldDirectory + "\\" + simSelectedFieldName + "\\";
+                string simSelectedField = fieldDirectory + "//" + simSelectedFieldName + "//";
 
                 if (StateMachine.FindState<MixAndMatchState>() != null) //Starts the MixAndMatch scene
                 {
