@@ -1,4 +1,5 @@
 #include "roborio_manager.hpp"
+#include "json_util.hpp"
 
 namespace hel{
     BoundsCheckedArray<bool, PCM::NUM_SOLENOIDS> PCM::getSolenoids()const noexcept{
@@ -17,6 +18,27 @@ namespace hel{
 
     void PCM::setSolenoids(const BoundsCheckedArray<bool,NUM_SOLENOIDS>& values){
         solenoids = values;
+    }
+
+    std::string PCM::serialize()const{
+        std::string s = "{";
+        s += serializeList(
+            "\"solenoids\"",
+            solenoids,
+            std::function<std::string(bool)>(static_cast<std::string(*)(bool)>(asString))
+            );
+        s += "}";
+        return s;
+    }
+
+    std::string PCM::toString()const{
+        std::string s = "(";
+        s += "solenoids:" + asString(
+            solenoids,
+            std::function<std::string(bool)>(static_cast<std::string(*)(bool)>(asString))
+        );
+        s += ")";
+        return s;
     }
 
     PCM::PCM()noexcept:solenoids(false){}
