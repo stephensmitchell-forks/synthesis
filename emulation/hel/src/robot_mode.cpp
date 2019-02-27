@@ -120,8 +120,9 @@ namespace hel{
         return s;
     }
 
-    RobotMode::RobotMode()noexcept:mode(RobotMode::Mode::TELEOPERATED),enabled(false),emergency_stopped(false),fms_attached(false),ds_attached(true){} // For testing, defaulting enabled to true is helpful
-    RobotMode::RobotMode(const RobotMode& source)noexcept{
+    RobotMode::RobotMode()noexcept:mode(RobotMode::Mode::TELEOPERATED),enabled(RobotMode::DEFAULT_ENABLED_STATUS),emergency_stopped(false),fms_attached(false),ds_attached(true){}
+
+	RobotMode::RobotMode(const RobotMode& source)noexcept{
 #define COPY(NAME) NAME = source.NAME
         COPY(mode);
         COPY(enabled);
