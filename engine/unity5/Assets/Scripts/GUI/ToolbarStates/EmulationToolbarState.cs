@@ -20,6 +20,7 @@ namespace Assets.Scripts.GUI
     public class EmulationToolbarState : State
     {
         EmulationDriverStation emulationDriverStation;
+        RobotIOGUI robotIOGUI;
 
         GameObject canvas;
         GameObject tabs;
@@ -32,6 +33,7 @@ namespace Assets.Scripts.GUI
         public override void Start()
         {
             emulationDriverStation = StateMachine.SceneGlobal.GetComponent<EmulationDriverStation>();
+            robotIOGUI = StateMachine.SceneGlobal.GetComponent<RobotIOGUI>();
 
             canvas = GameObject.Find("Canvas");
             tabs = Auxiliary.FindObject(canvas, "Tabs");
@@ -70,6 +72,14 @@ namespace Assets.Scripts.GUI
                 }
             }
             { }
+        }
+
+        /// <summary>
+        /// Opens the Synthesis RoboRIO IO GUI
+        /// </summary>
+        public void OnRobotIOGUIButtonClicked()
+        {
+            robotIOGUI.ToggleOpen();
         }
 
         /// <summary>
