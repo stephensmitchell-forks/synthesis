@@ -92,4 +92,8 @@ public class CANDevice
     [JsonProperty("inverted")]
     public int inverted { get; set; }
 
+    public CANDevice()
+    {
+        id = -1; // To identify which aren't in use
+    }
 }
