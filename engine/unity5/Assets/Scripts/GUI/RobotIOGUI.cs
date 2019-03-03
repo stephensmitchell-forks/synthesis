@@ -1,5 +1,6 @@
 ﻿using Synthesis.Input;
 using Synthesis.Utils;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,6 +21,18 @@ namespace Synthesis.GUI
         public Sprite EnableColor;
         public Sprite DisableColor;
 
+        private class RobotOutputs
+        {
+            public List<GameObject> pwmHdrs;
+
+            public RobotOutputs()
+            {
+                pwmHdrs = new List<GameObject>();
+            }
+        }
+
+        private RobotOutputs robotOutputs;
+
         private void Start()
         {
             canvas = GameObject.Find("Canvas");
@@ -27,19 +40,46 @@ namespace Synthesis.GUI
             robotOutputPanel = Auxiliary.FindObject(robotIOPanel, "RobotOutputPanel");
             robotOutputGrid = robotOutputPanel.GetComponent<GridLayoutGroup>();
 
+            robotOutputs = new RobotOutputs();
+
             var outputInstance = OutputManager.Instance;
 
-            GameObject prefab = Auxiliary.FindObject(robotIOPanel, "TextPrefab");
-            prefab.SetActive(false);
+            GameObject textObjectPrefab = Auxiliary.FindObject(robotOutputPanel, "TextPrefab");
+            textObjectPrefab.SetActive(false);
 
             for (int i = 0; i < outputInstance.Roborio.PwmHdrs.Length; i++)
             {
-                GameObject textObject = Instantiate(prefab);
-                Text text = textObject.GetComponent<Text>();
-                text.text = "PWM HDR " + i.ToString() + ": " + outputInstance.Roborio.PwmHdrs[i].ToString();
-                textObject.SetActive(true);
-                textObject.transform.SetParent(robotOutputPanel.transform);
+                robotOutputs.pwmHdrs.Add(GameObject.Instantiate(textObjectPrefab, robotOutputPanel.transform));
+                robotOutputs.pwmHdrs[i].SetActive(true);
             }
+
+            // TODO
+
+            Update();
+        }
+
+        public void UpdateOutputs()
+        {
+            var outputInstance = OutputManager.Instance;
+
+            for (int i = 0; i < outputInstance.Roborio.PwmHdrs.Length; i++)
+            {
+                robotOutputs.pwmHdrs[i].GetComponent<Text>().text = "PWM HDR " + i.ToString() + ": " + outputInstance.Roborio.PwmHdrs[i].ToString();
+            }
+
+            // TODO
+        }
+
+        public void UpdateInputs()
+        {
+            var inputInstance = InputManager.Instance;
+
+            // TODO
+        }
+
+        public void Update()
+        {
+            UpdateOutputs();
         }
 
         private void Awake()
