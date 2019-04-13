@@ -31,7 +31,7 @@ namespace Synthesis.States
         /// </summary>
         public override void Start()
         {
-            fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Autodesk\synthesis\Fields"));
+            fieldDirectory = PlayerPrefs.GetString("FieldDirectory", (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"/Autodesk/synthesis/Fields"));
             mixAndMatchModeScript = Auxiliary.FindGameObject("MixAndMatchModeScript");
             splashScreen = Auxiliary.FindGameObject("LoadSplash");
             fieldList = GameObject.Find("SimLoadFieldList").GetComponent<SelectScrollable>();
@@ -68,7 +68,7 @@ namespace Synthesis.States
             if (entry != null)
             {
                 string simSelectedFieldName = fieldList.GetComponent<SelectScrollable>().selectedEntry;
-                string simSelectedField = fieldDirectory + "\\" + simSelectedFieldName + "\\";
+                string simSelectedField = fieldDirectory + "/" + simSelectedFieldName + "/";
 
                 if (StateMachine.FindState<MixAndMatchState>() != null) //Starts the MixAndMatch scene
                 {
